@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Form Input Capture",
+  "version": "1.0",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["connect_llm.js","test_1.js"]
+    }
+  ],
+  "action": {
+    "default_title": "Capture Form"
+  }
+}
