@@ -49,10 +49,9 @@ document.addEventListener("submit", function (e) {
         let text = accordions[index].querySelector(".Accordion__title h2").textContent;
          
         //LLM Response
-        const customMessage = "Custom error message from LLM:- ";
         async function handleLLMResponse() {
           console.log('handle response called')
-          const result = await getLLMResponse();
+          const result = await getLLMResponse(fullContent,cmLineTexts);
           if (result) {
             console.log('Result from LLM: ',result)
             llmMessage = result.text;
@@ -72,7 +71,7 @@ document.addEventListener("submit", function (e) {
                 console.log("Found error element:", errorEl);
             
                 // Override the message
-                errorEl.textContent = customMessage+llmReply;
+                errorEl.textContent = llmReply;
             
                 // Optional: styling
                 errorEl.style.color = "#d00";

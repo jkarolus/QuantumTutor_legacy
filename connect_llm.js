@@ -1,8 +1,10 @@
-async function getLLMResponse() {
+async function getLLMResponse(question,solution) {
   console.log('Get LLM Response called')
     try {
 
-      let llmPromt = `Hello!! Can you write a greeting in not more than 3 words.`;
+      let llmPromt = `You are a passionate and patient quantum-physics teacher checking coding exercise answers of students. Based on the information given, give the struggling student a hint that helps him answer the following question, without giving away the answer. Be more specific and formulate your tip as if you were talking to a novice. Be as concise as possible and give a hint in not more than 7 words.`;
+      llmPromt = llmPromt + 'Question:- ' + question
+      llmPromt = llmPromt + 'Students solution:- ' + solution
   
           const response = await fetch('https://gpuserver.eit.rptu.de/v1/completions', {
             method: 'POST',
