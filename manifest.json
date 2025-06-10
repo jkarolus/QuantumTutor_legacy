@@ -6,8 +6,9 @@
   "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["connect_llm.js","test_1.js"]
+      "matches": ["https://pennylane.ai/*"],
+      "js": ["expertHints.js","connect_llm.js","save_data.js","test_1.js"],
+      "css": ["button_style.css"]
     }
   ],
   "action": {

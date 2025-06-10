@@ -1,9 +1,99 @@
 console.log('In test1 js')
-// Set up a listener on the entire page
+
+
+let g_label = '';
+let u_id = '';
+function createFloatingChoiceBox() {
+  // Create container
+  const panel = document.createElement("div");
+  panel.className ="floating-panel";
+
+  const inputLabel = document.createElement("label");
+  inputLabel.textContent = "Enter your User ID:";
+  inputLabel.style.fontSize = "14px";
+  panel.appendChild(inputLabel);
+
+  // Input box
+  const inputBox = document.createElement("input");
+  inputBox.type = "text";
+  inputBox.placeholder = "User ID";
+  panel.appendChild(inputBox);
+  
+  const title = document.createElement("div");
+  title.textContent = "Choose an option:";
+  title.style.fontWeight = "bold";
+  title.style.marginBottom = "8px";
+  panel.appendChild(title);
+
+
+  const choices = ["Vanilla System", "LLM Generated Tip", "Expert-created tip"];
+
+  choices.forEach((label) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+
+
+    btn.addEventListener("mouseover", () => {
+      btn.style.backgroundColor = "#0056b3";
+    });
+    btn.addEventListener("mouseout", () => {
+      btn.style.backgroundColor = "#007bff";
+    });
+
+
+    btn.addEventListener("click", () => {
+      const inputValue = inputBox.value.trim();
+      console.log(`✅ You selected: ${label}`);
+      console.log(`📝 User input: ${inputValue}`);
+      g_label = label
+      u_id = inputValue
+
+      panel.remove();
+      createStartTestButton();
+    });
+
+    panel.appendChild(btn);
+  });
+
+  document.body.appendChild(panel);
+}
+
+
+function createStartTestButton() {
+
+  const panel = document.createElement("div");
+  panel.className = "floating-panel";
+
+  const btn = document.createElement("button");
+  btn.textContent = "Start Test";
+
+  btn.addEventListener("mouseover", () => {
+  btn.style.backgroundColor = "#0056b3";
+  });
+  btn.addEventListener("mouseout", () => {
+  btn.style.backgroundColor = "#007bff";
+  });
+  btn.addEventListener("click", () => {
+    timestamp = Date.now()
+    saveStartingToServer(u_id,timestamp,g_label)
+    panel.remove();
+  });
+  panel.appendChild(btn);
+
+  // Append to body
+  document.body.appendChild(panel);
+}
+
+createFloatingChoiceBox();
+
+
+//------------------------
 const outerintervalId = setInterval(() => {
 document.addEventListener("submit", function (e) {
     const form = e.target;
-    
+    const curTime = Date.now()
+    console.log('Global lable and user id  :-',g_label,u_id)
+
     //Get question
     const ques = document.querySelector(".CoderciseDescription__container")
     const content = [];
@@ -20,34 +110,53 @@ document.addEventListener("submit", function (e) {
     if (images.length > 0) {
       images.forEach(img => content.push(`Image: ${img.src}`));
     }
-
     const fullContent = content.join("\n");
     console.log("Extracted content:\n", fullContent);
 
-    //LLM Response
+    //Get the code
+
+
+        //Get error box 
+    const accordions = document.querySelectorAll(".Accordion.Accordion__expanded");
+    const parentAccordion = form.closest(".Accordion");
+    const index = Array.from(accordions).indexOf(parentAccordion);
+    let exerciseLabel = accordions[index].querySelector(".Accordion__title h2").textContent;
+    let q_id = exerciseLabel.split(' ')[1] 
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    const cmLines = form.querySelectorAll(".cm-line");
+    const cmLineTexts = Array.from(cmLines).map(line => line.textContent.trim());
+    console.log("Form data:", data);
+    console.log(".cm-line texts:", cmLineTexts);
     let llmMessage = ""; 
+
+    if(q_id == 'I.1.5' || g_label == 'Vanilla System')
+    {
+      const intervalId = setInterval(() => {
+      const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
+      if (errorEl) {
+        const errorTest = accordions[index].querySelector(".CoderciseEditor > div > div").textContent; 
+        saveToServer(fullContent,cmLineTexts,errorTest,u_id,q_id,g_label,curTime)
+        clearInterval(intervalId);
+      } else {
+        console.log("Still waiting for popup to appear...");
+      }
+
+    }, 500);
+
+    }
+    else if(g_label == 'LLM Generated Tip'){
 
     const clickedBtn = document.querySelectorAll("button.CoderciseEditor__submit-button")
     if (clickedBtn) {
       console.log("Submit clicked!");
       // Traverse to the code block container
       if (form.querySelector(".CoderciseEditor__container")) {
+
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-    
-        //Get the code
-        const cmLines = form.querySelectorAll(".cm-line");
-        const cmLineTexts = Array.from(cmLines).map(line => line.textContent.trim());
-        console.log("Form data:", data);
-        console.log(".cm-line texts:", cmLineTexts);
 
-        //Plugin custom error
-        const accordions = document.querySelectorAll(".Accordion.Accordion__expanded");
-        const parentAccordion = form.closest(".Accordion");
-        const index = Array.from(accordions).indexOf(parentAccordion);
-        console.log("Accordion index:", index);
-        let text = accordions[index].querySelector(".Accordion__title h2").textContent;
-         
         //LLM Response
         async function handleLLMResponse() {
           console.log('handle response called')
@@ -61,23 +170,18 @@ document.addEventListener("submit", function (e) {
         (async () => {
           const llmReply = await handleLLMResponse();
           console.log("🌟 Final Reply:", llmReply);
-        
           
+          saveToServer(fullContent,cmLineTexts,llmReply,u_id,q_id,g_label,curTime)
           const intervalId = setInterval(() => {
               const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
               
-            //#topic-codercise-container > div > div.Accordion.Accordion__expanded > div > div > div > div > div.CoderciseEditor > div > div
               if (errorEl) {
                 console.log("Found error element:", errorEl);
-            
-                // Override the message
                 errorEl.textContent = llmReply;
-            
-                // Optional: styling
+
                 errorEl.style.color = "#d00";
                 errorEl.style.fontWeight = "bold";
             
-                // Stop the interval
                 clearInterval(intervalId);
               } else {
                 console.log("Still waiting for popup to appear...");
@@ -86,10 +190,52 @@ document.addEventListener("submit", function (e) {
           }, 500);
           })();
     }
+  }
+
+  }
+  else if(g_label == 'Expert-created tip'){
+    const clickedBtn = document.querySelectorAll("button.CoderciseEditor__submit-button")
+    if (clickedBtn) {
+      console.log("Submit clicked!");
+      if (form.querySelector(".CoderciseEditor__container")) {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+      
+        function getRandomExplanation(id) {
+          const explanations = savedData[id];
+
+          if (Array.isArray(explanations) && explanations.length > 0) {
+            const randomIndex = Math.floor(Math.random() * explanations.length);
+            return explanations[randomIndex];
+          }
+
+          return "No explanation available for this item.";
+        }
+      
+        
+        const intervalId = setInterval(() => {
+            const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
+            const message = getRandomExplanation(q_id);
+            saveToServer(fullContent,cmLineTexts,message,u_id,q_id,g_label,curTime)
+          //#topic-codercise-container > div > div.Accordion.Accordion__expanded > div > div > div > div > div.CoderciseEditor > div > div
+            if (errorEl) {
+              console.log("Found error element:", errorEl);
+              errorEl.textContent = message;
+              errorEl.style.color = "#d00";
+              errorEl.style.fontWeight = "bold";
+
+              clearInterval(intervalId);
+            } else {
+              console.log("Still waiting for popup to appear...");
+            }
+
+        }, 500);
+    }
+  }
 
   }
   else{
-    console.log('exercise 404')
+    console.log('Options not defined in condition')
   }
 
   })
