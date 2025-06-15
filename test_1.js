@@ -93,6 +93,7 @@ document.addEventListener("submit", function (e) {
     const form = e.target;
     const curTime = Date.now()
     console.log('Global lable and user id  :-',g_label,u_id)
+    let correctAnswer = false;
 
     //Get question
     const ques = document.querySelector(".CoderciseDescription__container")
@@ -129,17 +130,24 @@ document.addEventListener("submit", function (e) {
     const cmLineTexts = Array.from(cmLines).map(line => line.textContent.trim());
     console.log("Form data:", data);
     console.log(".cm-line texts:", cmLineTexts);
-    let llmMessage = ""; 
 
     if(q_id == 'I.1.5' || g_label == 'Vanilla System')
     {
       const intervalId = setInterval(() => {
       const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
-      if (errorEl) {
-        const errorTest = accordions[index].querySelector(".CoderciseEditor > div > div").textContent; 
-        saveToServer(fullContent,cmLineTexts,errorTest,u_id,q_id,g_label,curTime)
+      const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
+      if (errorEl && errorEl.textContent != 'Correct!') {
+        saveToServer(fullContent,cmLineTexts,errorEl.textContent,u_id,q_id,g_label,curTime,correctAnswer)
         clearInterval(intervalId);
-      } else {
+      } 
+      else if(!button.disabled)
+      {
+        console.log('Solution acceped!!');
+        correctAnswer = true;
+        saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
+        clearInterval(intervalId);
+      }
+      else {
         console.log("Still waiting for popup to appear...");
       }
 
@@ -167,28 +175,38 @@ document.addEventListener("submit", function (e) {
             return result
           }
         }
+        let llmReply = '';
         (async () => {
-          const llmReply = await handleLLMResponse();
+          llmReply = await handleLLMResponse();
           console.log("🌟 Final Reply:", llmReply);
           
-          saveToServer(fullContent,cmLineTexts,llmReply,u_id,q_id,g_label,curTime)
           const intervalId = setInterval(() => {
               const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
-              
-              if (errorEl) {
-                console.log("Found error element:", errorEl);
+              const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
+              if (errorEl && errorEl.textContent != 'Correct!') {
+                console.log('Error text :- ',errorEl.textContent)
                 errorEl.textContent = llmReply;
 
                 errorEl.style.color = "#d00";
                 errorEl.style.fontWeight = "bold";
-            
+                saveToServer(fullContent,cmLineTexts,llmReply,u_id,q_id,g_label,curTime,correctAnswer)
                 clearInterval(intervalId);
-              } else {
+              } 
+              else if(!button.disabled)
+              {
+                console.log('Solution acceped!!');
+                correctAnswer = true;
+                saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
+                clearInterval(intervalId);
+              }
+              else {
                 console.log("Still waiting for popup to appear...");
               }
 
           }, 500);
+          
           })();
+        
     }
   }
 
@@ -216,16 +234,23 @@ document.addEventListener("submit", function (e) {
         const intervalId = setInterval(() => {
             const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
             const message = getRandomExplanation(q_id);
-            saveToServer(fullContent,cmLineTexts,message,u_id,q_id,g_label,curTime)
-          //#topic-codercise-container > div > div.Accordion.Accordion__expanded > div > div > div > div > div.CoderciseEditor > div > div
-            if (errorEl) {
+            const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
+            if (errorEl && errorEl.textContent != 'Correct!') {
               console.log("Found error element:", errorEl);
               errorEl.textContent = message;
               errorEl.style.color = "#d00";
               errorEl.style.fontWeight = "bold";
-
+              saveToServer(fullContent,cmLineTexts,message,u_id,q_id,g_label,curTime,correctAnswer)
               clearInterval(intervalId);
-            } else {
+            } 
+            else if(!button.disabled)
+              {
+                console.log('Solution acceped!!');
+                correctAnswer = true;
+                saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
+                clearInterval(intervalId);
+              }
+            else {
               console.log("Still waiting for popup to appear...");
             }
 
