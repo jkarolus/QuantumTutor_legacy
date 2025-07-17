@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Form Input Capture",
+  "name": "Pennylane Ext version-",
   "version": "1.0",
   "permissions": ["scripting", "activeTab"],
   "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
       "matches": ["https://pennylane.ai/*"],
-      "js": ["expertHints.js","connect_llm.js","save_data.js","test_1.js"],
+      "js": ["save_data.js","offline_test_functionalities.js","expertHints.js","connect_llm.js","test_1.js"],
       "css": ["button_style.css"]
     }
   ],

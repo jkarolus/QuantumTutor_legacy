@@ -60,3 +60,30 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
 
 
   }
+  async function saveTimeSpentToServer(questionId, timeSpentMs,log)  {
+
+    console.log('Received content to save:- ',questionId, timeSpentMs,log)
+    try {
+      const response = await fetch('https://survey.dfki.de/quantumtutor', {
+      method: 'POST',
+      headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'mysecret123test'
+      },
+      body: JSON.stringify({
+        "question": questionId,
+        "timestamp": timeSpentMs,
+        "log": log
+      })
+      });
+      console.log('Server response :-',response)
+      if (!response.ok) {
+        throw new Error('Error communicating with server:- ',response.status);
+      }
+
+    } catch (error) {
+      console.error("Error communicating with server:", error);
+    }
+
+
+  }

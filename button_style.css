@@ -1,7 +1,7 @@
 /* Container for both floating boxes */
 .floating-panel {
   position: fixed;
-  top: 20px;
+  bottom: 20px;
   right: 20px;
   padding: 16px;
   background-color: #ffffff;

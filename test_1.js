@@ -76,6 +76,8 @@ function createStartTestButton() {
   btn.addEventListener("click", () => {
     timestamp = Date.now()
     saveStartingToServer(u_id,timestamp,g_label)
+    closeQuestion()
+    startPreTest('I.1.5')
     panel.remove();
   });
   panel.appendChild(btn);
@@ -135,16 +137,21 @@ document.addEventListener("submit", function (e) {
     {
       const intervalId = setInterval(() => {
       const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
-      const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
+      //const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
       if (errorEl && errorEl.textContent != 'Correct!') {
         saveToServer(fullContent,cmLineTexts,errorEl.textContent,u_id,q_id,g_label,curTime,correctAnswer)
         clearInterval(intervalId);
       } 
-      else if(!button.disabled)
+      else if(errorEl && errorEl.textContent == 'Correct!')
       {
         console.log('Solution acceped!!');
         correctAnswer = true;
+        stopQuestionTimer('Question correctly submitted')
+        if (q_id in questionStatus){
+                questionStatus[q_id]=true
+          }
         saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
+        startMainStudy()
         clearInterval(intervalId);
       }
       else {
@@ -182,7 +189,7 @@ document.addEventListener("submit", function (e) {
           
           const intervalId = setInterval(() => {
               const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
-              const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
+              //const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
               if (errorEl && errorEl.textContent != 'Correct!') {
                 console.log('Error text :- ',errorEl.textContent)
                 errorEl.textContent = llmReply;
@@ -192,10 +199,14 @@ document.addEventListener("submit", function (e) {
                 saveToServer(fullContent,cmLineTexts,llmReply,u_id,q_id,g_label,curTime,correctAnswer)
                 clearInterval(intervalId);
               } 
-              else if(!button.disabled)
+              else if( errorEl && errorEl.textContent == 'Correct!')
               {
                 console.log('Solution acceped!!');
                 correctAnswer = true;
+                        stopQuestionTimer('Question correctly submitted')
+                if (q_id in questionStatus){
+                        questionStatus[q_id]=true
+                  }
                 saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
                 clearInterval(intervalId);
               }
@@ -234,7 +245,7 @@ document.addEventListener("submit", function (e) {
         const intervalId = setInterval(() => {
             const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
             const message = getRandomExplanation(q_id);
-            const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
+            //const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
             if (errorEl && errorEl.textContent != 'Correct!') {
               console.log("Found error element:", errorEl);
               errorEl.textContent = message;
@@ -243,10 +254,14 @@ document.addEventListener("submit", function (e) {
               saveToServer(fullContent,cmLineTexts,message,u_id,q_id,g_label,curTime,correctAnswer)
               clearInterval(intervalId);
             } 
-            else if(!button.disabled)
+            else if( errorEl && errorEl.textContent == 'Correct!')
               {
                 console.log('Solution acceped!!');
                 correctAnswer = true;
+                        stopQuestionTimer('Question correctly submitted')
+                if (q_id in questionStatus){
+                        questionStatus[q_id]=true
+                  }
                 saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
                 clearInterval(intervalId);
               }
