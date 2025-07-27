@@ -3,6 +3,7 @@ const accordionStatus = [true, true, true, true, true];
 let studyState = 'pre';
 let questionStatus = {'I.1.1':false, 'I.1.2':false, 'I.1.3':false, 'I.1.4':false, 'I.1.5':false}; 
 let accordianHeadings = ['I.1.1','I.1.2','I.1.3','I.1.4','I.1.5']
+let timer_status = 'not_started'
 
 
 function autoHideCompareButton() {
@@ -12,13 +13,14 @@ function autoHideCompareButton() {
     accordion.addEventListener("click", function (e) {
       const titleElement = accordion.querySelector(".Accordion__title h2");
       if (!titleElement) return;
+      checkQuestionStatus()
       setTimeout(() => {
       if (accordion.classList.contains("Accordion__expanded")) {
         console.log('In expanded acc')
         const qid = titleElement.textContent.split(" ")[1];
         console.log('Currently opened:- ',qid)
         closeOtherAccordians(qid);
-        monitorExpandedAccordions();
+        monitorExpandedAccordions(accordion);
         
         // Check if question already solved or timed out
         if (questionStatus[qid] === true) {
@@ -41,7 +43,7 @@ function autoHideCompareButton() {
           }
         }, 500); 
     }
-    }, 300);//---
+    }, 100);//---
     });
   });
 }
@@ -94,13 +96,15 @@ function startMainStudy(){
       accordion.style.visibility = "visible";
     }
   });
+  console.log('State:-', studyState)
   autoHideCompareButton();
 }
 
 function checkQuestionStatus(){
   let temp = true
   for (const qid in questionStatus) {
-    if(questionStatus[qid] == false){
+    if(qid == 'I.1.5') continue
+    else if(questionStatus[qid] == false){
       temp = false
     }
   } 
@@ -154,7 +158,7 @@ function getAllowedExpandedCount() {
   }
   return 1; 
 }
-
+/*
 function monitorExpandedAccordions() {
   const observer = new MutationObserver(() => {
     const expanded = document.querySelectorAll(".CoderciseList .Accordion.Accordion__expanded");
@@ -173,6 +177,23 @@ function monitorExpandedAccordions() {
     attributeFilter: ["class"],
   });
 }
+*/
+function monitorExpandedAccordions(accordion) {
+  console.log('In new func')
+  //const accordions = document.querySelectorAll(".CoderciseList .Accordion");
+  setTimeout(() => {
+    const isExpanded = accordion.classList.contains("Accordion__expanded");
+
+    if (isExpanded) {
+      console.log("Starting timer for:", accordion);
+      if(timer_status != 'running') startQuestionTimer(accordion);
+    } else {
+      console.log("Accordion collapsed");
+      stopQuestionTimer("Question Closed");
+    }
+  }, 100); 
+
+}
 
 
 let currentAccordion = null;
@@ -184,7 +205,8 @@ let timeLeft = 0;
 let isPaused = false;
 
 function startQuestionTimer(accordionElement) {
-  stopQuestionTimer('Question Closed'); 
+  //stopQuestionTimer('Question Closed'); 
+
 
   const title = accordionElement.querySelector(".Accordion__title");
   const header = accordionElement.querySelector(".Accordion__title h2");
@@ -228,7 +250,7 @@ function startQuestionTimer(accordionElement) {
     }
   });
   timerDisplay.appendChild(stopBtn);
-
+  timer_status = 'running'
 
   accordionElement.appendChild(timerDisplay);
   currentTimerElement = timerDisplay;
@@ -258,8 +280,10 @@ function startQuestionTimer(accordionElement) {
     }
   }, 1000);
 }
+
 function stopQuestionTimer(log) {
   if (currentTimer) {
+    timer_status = 'stopped'
     clearInterval(currentTimer);
     currentTimer = null;
 
