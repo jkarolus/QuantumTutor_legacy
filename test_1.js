@@ -56,8 +56,12 @@ document.addEventListener("submit", function (e) {
     console.log('Global lable and user id  :-',g_label,u_id)
     let correctAnswer = false;
 
+    const accordions = document.querySelectorAll(".Accordion.Accordion__expanded");
+    const parentAccordion = form.closest(".Accordion");
+    const index = Array.from(accordions).indexOf(parentAccordion);
+
     //Get question
-    const ques = document.querySelector(".CoderciseDescription__container")
+    const ques = accordions[index].querySelector(".CoderciseDescription__container")
     const content = [];
     ques.querySelectorAll("p").forEach(p => content.push(p.textContent.trim()));
     const code = ques.querySelectorAll("code")
@@ -79,9 +83,6 @@ document.addEventListener("submit", function (e) {
 
 
         //Get error box 
-    const accordions = document.querySelectorAll(".Accordion.Accordion__expanded");
-    const parentAccordion = form.closest(".Accordion");
-    const index = Array.from(accordions).indexOf(parentAccordion);
     let exerciseLabel = accordions[index].querySelector(".Accordion__title h2").textContent;
     let q_id = exerciseLabel.split(' ')[1] 
 
@@ -130,11 +131,17 @@ document.addEventListener("submit", function (e) {
 
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-
+        let errorMsg = ''
+        const intervalId = setInterval(() => {
+            console.log('found error element')
+            const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div");
+            if(errorEl) { errorMsg = errorEl.textContent}
+          }, 500);
         //LLM Response
         async function handleLLMResponse() {
           console.log('handle response called')
-          const result = await getLLMResponse(fullContent,cmLineTexts);
+          
+          const result = await getLLMResponse(fullContent,cmLineTexts,errorMsg);
           if (result) {
             console.log('Result from LLM: ',result)
             llmMessage = result.text;
