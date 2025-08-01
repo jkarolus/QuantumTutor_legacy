@@ -1,9 +1,29 @@
+
 let alertShown = false;
 const accordionStatus = [true, true, true, true, true]; 
-let studyState = 'pre';
+let studyState = 'start';
 let questionStatus = {'I.1.1':false, 'I.1.2':false, 'I.1.3':false, 'I.1.4':false, 'I.1.5':false}; 
 let accordianHeadings = ['I.1.1','I.1.2','I.1.3','I.1.4','I.1.5']
 
+
+function loadExtensionState() {
+  console.log('In load extension')
+  chrome.storage.local.get(["currentState","questionStatus","g_label"], (result) => {
+    if(result.g_label) g_label = g_label
+    if(result.questionStatus) questionStatus=questionStatus
+    if(result.currentState) studyState=currentState
+    if(result.currentState == 'start') createStartTestButton()
+    if (result.currentState == 'pre') {
+      startPreTest('I.1.5')
+    }
+    else if(result.currentState == 'main') {
+      startMainStudy()
+    }
+    else if(result.currentState == 'pre') {
+      startPostStudy()
+    }
+  });
+}
 
 function autoHideCompareButton() {
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
@@ -64,6 +84,9 @@ function closeOtherAccordians(currentlyOpen){
 }
 function startPreTest(allowedTitle) {
   studyState = 'pre';
+  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
+  console.log("State saved.");
+});
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
   accordions.forEach(accordion => {
     const titleElement = accordion.querySelector(".Accordion__title h2");
@@ -81,6 +104,9 @@ function startPreTest(allowedTitle) {
 
 function startMainStudy(){
   studyState = 'main'
+  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
+  console.log('State saved 1st')
+});
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
   accordions.forEach(accordion => {
     const titleElement = accordion.querySelector(".Accordion__title h2");
@@ -127,6 +153,9 @@ function closeQuestion(){
 }
 function startPostStudy(){
   studyState = 'post'
+  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
+  console.log('State saved 1st')
+});
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
   accordions.forEach(accordion => {
     const titleElement = accordion.querySelector(".Accordion__title h2");
@@ -253,6 +282,9 @@ function startQuestionTimer(accordionElement) {
       }
       if (questionId in questionStatus){
         questionStatus[questionId]=true
+        chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
+          console.log('State saved 1st')
+        });
         checkQuestionStatus()
       }
     }
