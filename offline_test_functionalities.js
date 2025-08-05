@@ -92,6 +92,10 @@ function autoHideCompareButton() {
           }
         }, 500); 
     }
+    else {
+      console.log("Accordion collapsed");
+      stopQuestionTimer("Question Closed");
+    }
     }, 100);//---
     });
   });
