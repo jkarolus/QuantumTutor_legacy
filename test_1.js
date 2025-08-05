@@ -1,20 +1,8 @@
 console.log('In test1 js')
 loadExtensionState()
-let g_label = '';
-let u_id = '';
-function extractUrlParamsAndStore() {
-  const params = new URLSearchParams(window.location.search);
-  let u_id = params.get("user");
-  let g_label = params.get("type");
 
-  if (u_id && g_label) {
-    chrome.storage.local.set({ u_id, g_label }, () => {
-      console.log("Stored user and type:", u_id, g_label);
-    });
-  }
-}
-extractUrlParamsAndStore()
 
+console.log("Extracted type:", g_label); 
 
 function createStartTestButton() {
   if(studyState == 'start')
@@ -44,7 +32,7 @@ function createStartTestButton() {
     document.body.appendChild(panel);
   }
 }
-createStartTestButton();
+//if(studyState == 'start') createStartTestButton();
 //createFloatingChoiceBox();
 
 
@@ -93,7 +81,8 @@ document.addEventListener("submit", function (e) {
     console.log("Form data:", data);
     console.log(".cm-line texts:", cmLineTexts);
 
-    if(q_id == 'I.1.5' || g_label == 'Vanilla_System')
+    console.log('Value od label:- ',g_label)
+    if(q_id == 'I.1.5' || g_label == 'mkjn')
     {
       const intervalId = setInterval(() => {
       const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
@@ -121,7 +110,7 @@ document.addEventListener("submit", function (e) {
     }, 500);
 
     }
-    else if(g_label == 'LLM Generated Tip'){
+    else if(g_label == 'bhgv'){
 
     const clickedBtn = document.querySelectorAll("button.CoderciseEditor__submit-button")
     if (clickedBtn) {
@@ -175,7 +164,7 @@ document.addEventListener("submit", function (e) {
                   }
                 saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
                 chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
-                  console.log("State saved.");
+                  console.log("SSavung state with questionStatus:- ",questionStatus);
                 });
                 clearInterval(intervalId);
               }
@@ -191,7 +180,7 @@ document.addEventListener("submit", function (e) {
   }
 
   }
-  else if(g_label == 'Expert-created tip'){
+  else if(g_label == 'cfdx'){
     const clickedBtn = document.querySelectorAll("button.CoderciseEditor__submit-button")
     if (clickedBtn) {
       console.log("Submit clicked!");
@@ -233,7 +222,7 @@ document.addEventListener("submit", function (e) {
                   }
                 saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
                 chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
-                  console.log("State saved.");
+                  console.log("SSavung state with questionStatus:- ",questionStatus);
                 });
                 clearInterval(intervalId);
               }

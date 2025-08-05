@@ -5,26 +5,55 @@ let studyState = 'start';
 let questionStatus = {'I.1.1':false, 'I.1.2':false, 'I.1.3':false, 'I.1.4':false, 'I.1.5':false}; 
 let accordianHeadings = ['I.1.1','I.1.2','I.1.3','I.1.4','I.1.5']
 let timer_status = 'not_started'
+let g_label = '';
+let u_id = '';
 
+function extractUrlParamsAndStore() {
+  const params = new URLSearchParams(window.location.search);
+  u_id = params.get("user");
+  g_label = params.get("type");
+
+  if (u_id && g_label) {
+    chrome.storage.local.set({ u_id, g_label }, () => {
+      console.log("Stored user and type:", u_id, g_label);
+    });
+  }
+}
+extractUrlParamsAndStore()
+
+console.log("Extracted type:", g_label); 
 
 function loadExtensionState() {
   console.log('In load extension')
   chrome.storage.local.get(["currentState","questionStatus","g_label"], (result) => {
-    if(result.g_label) g_label = g_label
-    if(result.questionStatus) questionStatus=questionStatus
-    if(result.currentState) studyState=currentState
-    if(result.currentState == 'start') createStartTestButton()
-    if (result.currentState == 'pre') {
+    if(g_label)
+      { 
+        g_label = result.g_label
+        console.log('Retrieved g_label',g_label)
+      }
+    if(result.questionStatus) { 
+      questionStatus=result.questionStatus
+      console.log('Retrieved questionStatus',questionStatus)
+    }
+    if(result.currentState){ 
+        studyState=result.currentState
+        console.log('Retrieved studyState',studyState)
+      }
+    if(studyState == 'start') {
+      createStartTestButton()}
+    if (studyState == 'pre') {
       startPreTest('I.1.5')
     }
-    else if(result.currentState == 'main') {
+    else if(studyState == 'main') {
       startMainStudy()
     }
-    else if(result.currentState == 'pre') {
+    else if(studyState== 'post') {
       startPostStudy()
     }
   });
 }
+
+
 
 function autoHideCompareButton() {
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
@@ -87,7 +116,7 @@ function closeOtherAccordians(currentlyOpen){
 function startPreTest(allowedTitle) {
   studyState = 'pre';
   chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
-  console.log("State saved.");
+  console.log("SSavung state with questionStatus:- ",questionStatus);
 });
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
   accordions.forEach(accordion => {
@@ -107,8 +136,10 @@ function startPreTest(allowedTitle) {
 function startMainStudy(){
   studyState = 'main'
   chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
-  console.log('State saved 1st')
-});
+  console.log("SSavung state with questionStatus:- ",questionStatus);});
+  chrome.storage.local.get(["currentState", "questionStatus"], (result) => {
+    console.log("Read back:", result);});
+
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
   accordions.forEach(accordion => {
     const titleElement = accordion.querySelector(".Accordion__title h2");
@@ -158,7 +189,7 @@ function closeQuestion(){
 function startPostStudy(){
   studyState = 'post'
   chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
-  console.log('State saved 1st')
+  console.log("SSavung state with questionStatus:- ",questionStatus);
 });
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
   accordions.forEach(accordion => {
