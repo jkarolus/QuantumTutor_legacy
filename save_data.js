@@ -13,7 +13,7 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
       body: JSON.stringify({
         "u_id": uid,
         "timestamp": timestamp,
-        "cid": cid,
+        "Question_ID": cid,
         "question": question,
         "fullCode": fullCode,
         "hintResponse": hintResponse,
@@ -28,9 +28,6 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
     } catch (error) {
       console.error("Error communicating with server:", error);
     }
-    //create a startstudy button on the UI -- done
-    //check if answer is correct? new function ()
-    //correctAnswer -- boolean
   }
 
   async function saveStartingToServer(uid,timestamp,cid) {
@@ -44,9 +41,9 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
               'Authorization': 'mysecret123test'
       },
       body: JSON.stringify({
-        "u_id": uid,
+        "User_ID": uid,
         "timestamp": timestamp,
-        "cid": cid
+        "Question_ID": cid
       })
       });
       console.log('Server response :-',response)
@@ -60,9 +57,9 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
 
 
   }
-  async function saveTimeSpentToServer(questionId, timeSpentMs,log)  {
+  async function saveTimeSpentToServer(questionId, u_id,timeSpentMs,log)  {
 
-    console.log('Received content to save:- ',questionId, timeSpentMs,log)
+    console.log('Received content to save:- ',questionId,u_id, timeSpentMs,log)
     try {
       const response = await fetch('https://survey.dfki.de/quantumtutor', {
       method: 'POST',
@@ -72,7 +69,8 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
       },
       body: JSON.stringify({
         "question": questionId,
-        "timestamp": timeSpentMs,
+        "User ID": u_id,
+        "Time Spent": timeSpentMs,
         "log": log
       })
       });
