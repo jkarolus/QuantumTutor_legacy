@@ -7,6 +7,7 @@ let accordianHeadings = ['I.1.1','I.1.2','I.1.3','I.1.4','I.1.5']
 let timer_status = 'not_started'
 let g_label = '';
 let u_id = '';
+let code_len = [];
 
 function extractUrlParamsAndStore() {
   const params = new URLSearchParams(window.location.search);
@@ -52,6 +53,19 @@ function loadExtensionState() {
     }
   });
 }
+
+  const accordions = document.querySelectorAll(".CoderciseList .Accordion");
+  accordions.forEach((accordion) => {
+    accordion.addEventListener("click", function (e) {
+      setInterval(() => {
+      if (accordion.classList.contains("Accordion__expanded")) {
+        const cmLines = accordion.querySelectorAll(".cm-line");
+        const cmLineTexts = Array.from(cmLines).map(line => line.textContent.trim()).join(" ");
+        code_len.push(cmLineTexts.length)
+      }
+    }, 1000);//---
+    });
+  });
 
 
 

@@ -1,8 +1,8 @@
-async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp,correctAnswer) {
+async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp,correctAnswer,code_len) {
 
     const cleanCode = solution.map(line => line.trim()).filter(line => line !== '');
     const fullCode = cleanCode.join('\n');
-    console.log('Received content to save:- ',question,fullCode ,hintResponse,uid,qid,cid,timestamp,correctAnswer)
+    console.log('Received content to save:- ',question,fullCode ,hintResponse,uid,qid,cid,timestamp,correctAnswer,code_len)
     try {
       const response = await fetch('https://survey.dfki.de/quantumtutor', {
       method: 'POST',
@@ -17,7 +17,8 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
         "question": question,
         "fullCode": fullCode,
         "hintResponse": hintResponse,
-        "correctAnswer": correctAnswer
+        "correctAnswer": correctAnswer,
+        "Code length":code_len
       })
       });
       console.log('Server response :-',response)

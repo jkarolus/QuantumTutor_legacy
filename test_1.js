@@ -88,7 +88,7 @@ document.addEventListener("submit", function (e) {
       const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
       //const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
       if (errorEl && errorEl.textContent != 'Correct!') {
-        saveToServer(fullContent,cmLineTexts,errorEl.textContent,u_id,q_id,g_label,curTime,correctAnswer)
+        saveToServer(fullContent,cmLineTexts,errorEl.textContent,u_id,q_id,g_label,curTime,correctAnswer,code_len)
         clearInterval(intervalId);
       } 
       else if(errorEl && errorEl.textContent == 'Correct!')
@@ -99,7 +99,7 @@ document.addEventListener("submit", function (e) {
         if (q_id in questionStatus){
                 questionStatus[q_id]=true
           }
-        saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
+        saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer,code_len)
         startMainStudy()
         clearInterval(intervalId);
       }
@@ -151,7 +151,7 @@ document.addEventListener("submit", function (e) {
 
                 errorEl.style.color = "#d00";
                 errorEl.style.fontWeight = "bold";
-                saveToServer(fullContent,cmLineTexts,llmReply,u_id,q_id,g_label,curTime,correctAnswer)
+                saveToServer(fullContent,cmLineTexts,llmReply,u_id,q_id,g_label,curTime,correctAnswer,code_len)
                 clearInterval(intervalId);
               } 
               else if( errorEl && errorEl.textContent == 'Correct!')
@@ -162,7 +162,7 @@ document.addEventListener("submit", function (e) {
                 if (q_id in questionStatus){
                         questionStatus[q_id]=true
                   }
-                saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
+                saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer,code_len)
                 chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
                   console.log("SSavung state with questionStatus:- ",questionStatus);
                 });
@@ -209,7 +209,7 @@ document.addEventListener("submit", function (e) {
               errorEl.textContent = message;
               errorEl.style.color = "#d00";
               errorEl.style.fontWeight = "bold";
-              saveToServer(fullContent,cmLineTexts,message,u_id,q_id,g_label,curTime,correctAnswer)
+              saveToServer(fullContent,cmLineTexts,message,u_id,q_id,g_label,curTime,correctAnswer,code_len)
               clearInterval(intervalId);
             } 
             else if( errorEl && errorEl.textContent == 'Correct!')
@@ -220,7 +220,7 @@ document.addEventListener("submit", function (e) {
                 if (q_id in questionStatus){
                         questionStatus[q_id]=true
                   }
-                saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer)
+                saveToServer(fullContent,cmLineTexts,'Solution acceped!!',u_id,q_id,g_label,curTime,correctAnswer,code_len)
                 chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
                   console.log("SSavung state with questionStatus:- ",questionStatus);
                 });
