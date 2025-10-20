@@ -1,4 +1,38 @@
 async function getLLMResponse(question,solution,errorMessage) {
+
+    const cleanCode = solution.map(line => line.trim()).filter(line => line !== '');
+    const fullCode = cleanCode.join('\n');
+    console.log('Received content - ',question,fullCode )
+    try {
+      const response = await fetch('https://survey.dfki.de/quantumtutorllm', {
+      method: 'POST',
+      headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'mysecret123test'
+      },
+      body: JSON.stringify({
+        "body":{
+        "question": question,
+        "fullCode": fullCode
+        }
+      })
+      });
+      console.log('Server response :-',response)
+      if (!response.ok) {
+        throw new Error('Error communicating with server:- ',response.status);
+      }
+      else{
+        const data = await response.json();
+        return data.message;
+      }
+
+    } catch (error) {
+      console.error("Error communicating with server:", error);
+    }
+  }
+
+/*
+async function getLLMResponse(question,solution,errorMessage) {
   console.log('Get LLM Response called',errorMessage)
     try {
 
@@ -20,7 +54,7 @@ async function getLLMResponse(question,solution,errorMessage) {
               'Authorization': 'Bearer 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'
             },
             body: JSON.stringify({
-              model: 'gpt-4o',
+              model: 'gpt-4o-mini',
               messages: [
                 { role: 'system', content: 'You are a passionate and patient quantum-physics teacher checking coding exercise answers of students. ' },
                 { role: 'user', content: llmPromt }
@@ -39,3 +73,4 @@ async function getLLMResponse(question,solution,errorMessage) {
       console.error("Error communicating with LLM:", error);
     }
   }
+    */

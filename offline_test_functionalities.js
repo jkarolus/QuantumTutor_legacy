@@ -8,6 +8,8 @@ let timer_status = 'not_started'
 let g_label = '';
 let u_id = '';
 let code_len = [];
+let current_timing = [];
+let questionTimings = {'I.1.1':0.0, 'I.1.2':0.0, 'I.1.3':0.0, 'I.1.4':0.0, 'I.1.5':0.0};
 
 function extractUrlParamsAndStore() {
   const params = new URLSearchParams(window.location.search);
@@ -26,7 +28,7 @@ console.log("Extracted type:", g_label);
 
 function loadExtensionState() {
   console.log('In load extension')
-  chrome.storage.local.get(["currentState","questionStatus","g_label"], (result) => {
+  chrome.storage.local.get(["currentState","questionStatus","g_label","questionTimings"], (result) => {
     if(g_label)
       { 
         g_label = result.g_label
@@ -40,6 +42,10 @@ function loadExtensionState() {
         studyState=result.currentState
         console.log('Retrieved studyState',studyState)
       }
+    if(result.questionTimings){ 
+      questionTimings=result.questionTimings
+      console.log('Retrieved questionTimings',questionTimings)
+    }
     if(studyState == 'start') {
       createStartTestButton()}
     if (studyState == 'pre') {
@@ -107,7 +113,7 @@ function autoHideCompareButton() {
         }, 500); 
     }
     else {
-      console.log("Accordion collapsed");
+      console.log("Accordion collapsed!!");
       stopQuestionTimer("Question Closed");
     }
     }, 100);//---
@@ -133,7 +139,7 @@ function closeOtherAccordians(currentlyOpen){
 }
 function startPreTest(allowedTitle) {
   studyState = 'pre';
-  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
+  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus ,questionTimings: questionTimings }, () => {
   console.log("SSavung state with questionStatus:- ",questionStatus);
 });
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
@@ -153,7 +159,7 @@ function startPreTest(allowedTitle) {
 
 function startMainStudy(){
   studyState = 'main'
-  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
+  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus ,questionTimings: questionTimings }, () => {
   console.log("SSavung state with questionStatus:- ",questionStatus);});
   chrome.storage.local.get(["currentState", "questionStatus"], (result) => {
     console.log("Read back:", result);});
@@ -177,15 +183,24 @@ function startMainStudy(){
 
 function checkQuestionStatus(){
   let temp = true
-  for (const qid in questionStatus) {
-    if(qid == 'I.1.5') continue
-    else if(questionStatus[qid] == false){
-      temp = false
+  chrome.storage.local.get(["currentState", "questionStatus"], (result) => {
+    console.log("Read back:", result);
+    if(result.questionStatus) { 
+      questionStatus=result.questionStatus
+      currentState = result.currentState
+    
+    for (const qid in questionStatus) {
+      if(qid == 'I.1.5' && currentState == 'pre') continue
+      else if(questionStatus[qid] == false){
+        temp = false
+      }
+    } 
+    if(temp){
+      startPostStudy()
     }
-  } 
-  if(temp){
-    startPostStudy()
-  }
+    }
+  });
+
 }
 
 function closeQuestion(){
@@ -206,7 +221,7 @@ function closeQuestion(){
 }
 function startPostStudy(){
   studyState = 'post'
-  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
+  chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus ,questionTimings: questionTimings }, () => {
   console.log("SSavung state with questionStatus:- ",questionStatus);
 });
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
@@ -303,6 +318,7 @@ function startQuestionTimer(accordionElement) {
   timerDisplay.style.alignItems = "center";
   timerDisplay.style.gap = "10px";
 
+/* old logic
   const timeEl = document.createElement("span");
   if(questionId =='I.1.5'){
     timeEl.textContent = "07:30";
@@ -311,6 +327,29 @@ function startQuestionTimer(accordionElement) {
     timeEl.textContent = "05:00";
   }
   timerDisplay.appendChild(timeEl);
+*/
+  // change to reset timer --finish
+  const timeEl = document.createElement("span");
+
+  if (
+    questionTimings[questionId] &&
+    questionTimings[questionId].status === "stopped" &&
+    questionTimings[questionId].timeLeft > 0
+  ) {
+    timeLeft = questionTimings[questionId].timeLeft;
+  } else {
+    if (questionId === "I.1.5") {
+      timeLeft = 7.5 * 60; 
+    } else {
+      timeLeft = 5 * 60;   
+    }
+  }
+  const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+  const secs = String(timeLeft % 60).padStart(2, "0");
+  timeEl.textContent = `${mins}:${secs}`;
+
+  timerDisplay.appendChild(timeEl);
+  // change to reset timer --end
 
   const stopBtn = document.createElement("button");
   stopBtn.textContent = "Finish";
@@ -321,11 +360,28 @@ function startQuestionTimer(accordionElement) {
   stopBtn.style.borderRadius = "4px";
   stopBtn.style.cursor = "pointer";
   stopBtn.addEventListener("click", () => {
+    if(questionId=='I.1.5' && studyState== 'post'){
+      alert('Test completed')
+      questionStatus[questionId]=true
+      console.log('Status and id ',questionStatus)
+      chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
+      console.log('State saved after test finished',questionStatus)
+      closeQuestion()
+    });
+      stopQuestionTimer('Test completed');
+    }
+    else{
+    questionStatus[questionId]=true
+    chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
+      console.log('State saved after finish button clicked',questionStatus)
+    });
     stopQuestionTimer('Finish button clicked');
     closeQuestion()
+    checkQuestionStatus()
     if(studyState== 'pre'){
       startMainStudy()
     }
+      }
   });
   timerDisplay.appendChild(stopBtn);
   timer_status = 'running'
@@ -335,9 +391,19 @@ function startQuestionTimer(accordionElement) {
   currentQuestionId = questionId;
   timerStartTime = Date.now();
 
-  let timeLeft = 5.0 * 60; // seconds
+  /* old logic
+  timeLeft = 5.0 * 60; // seconds
   if(questionId =='I.1.5'){
     timeLeft = 7.5 * 60; // seconds
+  }*/
+  // Resume timer if question was stopped previously (accordion collapse)
+  if (questionTimings[questionId] && questionTimings[questionId].status === "stopped") {
+    timeLeft = questionTimings[questionId].timeLeft || 5 * 60;
+    console.log(`Resuming timer for ${questionId} from ${timeLeft} seconds`);
+  } else {
+    // Otherwise start fresh
+    timeLeft = (questionId === 'I.1.5') ? 7.5 * 60 : 5 * 60;
+    console.log(`Starting new timer for ${questionId}`);
   }
 
   currentTimer = setInterval(() => {
@@ -353,7 +419,7 @@ function startQuestionTimer(accordionElement) {
       }
       if (questionId in questionStatus){
         questionStatus[questionId]=true
-        chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus }, () => {
+        chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus ,questionTimings: questionTimings }, () => {
           console.log('State saved 1st')
         });
         checkQuestionStatus()
@@ -366,8 +432,17 @@ function stopQuestionTimer(log) {
   if (currentTimer) {
     timer_status = 'stopped'
     clearInterval(currentTimer);
-    currentTimer = null;
+    //currentTimer = null;
 
+     questionTimings[currentQuestionId] = {
+      timeLeft: timeLeft, 
+      status: (log === 'Finish button clicked' || log === 'Timer Ran out') ? 'completed' : 'stopped',
+      stoppedAt: new Date().toISOString()
+    };
+    //questionTimings[currentQuestionId] = currentTimer
+    chrome.storage.local.set({ currentState: studyState ,questionTimings: questionTimings }, () => {
+      console.log("Saving state with questionTimings:- ",questionTimings);
+   });
     const timeSpent = (Date.now() - timerStartTime)/60000;
     if (currentQuestionId) {
       saveTimeSpentToServer(currentQuestionId, g_label,timeSpent,log);
