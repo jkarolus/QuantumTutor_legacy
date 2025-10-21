@@ -196,6 +196,10 @@ function checkQuestionStatus(){
       }
     } 
     if(temp){
+      questionStatus['I.1.5']=false
+      chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
+      console.log('Starting post test',questionStatus)
+    });
       startPostStudy()
     }
     }
@@ -363,7 +367,7 @@ function startQuestionTimer(accordionElement) {
     if(questionId=='I.1.5' && studyState== 'post'){
       alert('Test completed')
       questionStatus[questionId]=true
-      console.log('Status and id ',questionStatus)
+      console.log('Test completed ',questionStatus)
       chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
       console.log('State saved after test finished',questionStatus)
       closeQuestion()
