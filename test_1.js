@@ -23,7 +23,7 @@ function createStartTestButton() {
       timestamp = Date.now()
       saveStartingToServer(u_id,timestamp,g_label)
       closeQuestion()
-      startPreTest('I.1.5')
+      startPreTest('PreTest')
       panel.remove();
     });
     panel.appendChild(btn);
@@ -73,7 +73,7 @@ document.addEventListener("submit", function (e) {
         //Get error box 
     let exerciseLabel = accordions[index].querySelector(".Accordion__title h2").textContent;
     let q_id = exerciseLabel.split(' ')[1] 
-
+  
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     const cmLines = form.querySelectorAll(".cm-line");
@@ -82,8 +82,9 @@ document.addEventListener("submit", function (e) {
     console.log(".cm-line texts:", cmLineTexts);
 
     console.log('Value od label:- ',g_label)
-    if(q_id == 'I.1.5' || g_label == 'mkjn')
+    if(exerciseLabel.includes('PreTest') || exerciseLabel.includes('PostTest') || g_label == 'mkjn')
     {
+      q_id = 'I.1.5'
       const intervalId = setInterval(() => {
       const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
       //const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
@@ -124,7 +125,9 @@ document.addEventListener("submit", function (e) {
         const intervalId = setInterval(() => {
             console.log('found error element')
             const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div");
-            if(errorEl) { errorMsg = errorEl.textContent}
+            if(errorEl) { 
+              errorMsg = errorEl.textContent
+            }
           }, 500);
         //LLM Response
         async function handleLLMResponse() {

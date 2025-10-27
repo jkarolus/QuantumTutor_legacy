@@ -49,7 +49,7 @@ function loadExtensionState() {
     if(studyState == 'start') {
       createStartTestButton()}
     if (studyState == 'pre') {
-      startPreTest('I.1.5')
+      startPreTest('PreTest')
     }
     else if(studyState == 'main') {
       startMainStudy()
@@ -140,15 +140,19 @@ function closeOtherAccordians(currentlyOpen){
 function startPreTest(allowedTitle) {
   studyState = 'pre';
   chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus ,questionTimings: questionTimings }, () => {
-  console.log("SSavung state with questionStatus:- ",questionStatus);
+  console.log("Saving state with questionStatus:- ",questionStatus);
 });
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
   accordions.forEach(accordion => {
     const titleElement = accordion.querySelector(".Accordion__title h2");
     if (!titleElement) return;
 
-    const titleText = titleElement.textContent.split(' ')[1];
-
+    //const titleText = titleElement.textContent.split(' ')[1];
+    let titleText = titleElement.textContent
+    if(titleText.includes('I.1.5')){
+      titleElement.textContent = 'PreTest'
+      titleText= 'PreTest'
+    }
     if (titleText !== allowedTitle) {
       accordion.style.visibility = "hidden";
     }
@@ -169,8 +173,8 @@ function startMainStudy(){
     const titleElement = accordion.querySelector(".Accordion__title h2");
     if (!titleElement) return;
 
-    const titleText = titleElement.textContent.split(' ')[1];
-    if (titleText == 'I.1.5') {
+    const titleText = titleElement.textContent;
+    if (titleText.includes('PreTest') || titleText.includes('PostTest') ) {
       accordion.style.visibility = "hidden";
     }
     else{
@@ -233,13 +237,14 @@ function startPostStudy(){
     const titleElement = accordion.querySelector(".Accordion__title h2");
     if (!titleElement) return;
 
-    const titleText = titleElement.textContent.split(' ')[1];
+    const titleText = titleElement.textContent;
 
-    if (titleText !== 'I.1.5') {
-      accordion.style.visibility = "hidden";
+    if (titleText.includes('PreTest') || titleText.includes('PostTest')) {
+      accordion.style.visibility = "visible";
+      titleElement.textContent = 'PostTest'
     }
     else{
-      accordion.style.visibility = "visible";
+      accordion.style.visibility = "hidden";
     }
   });
   autoHideCompareButton();
@@ -304,12 +309,18 @@ let isPaused = false;
 function startQuestionTimer(accordionElement) {
   //stopQuestionTimer('Question Closed'); 
 
-
+  let questionId;
   const title = accordionElement.querySelector(".Accordion__title");
   const header = accordionElement.querySelector(".Accordion__title h2");
-  const questionId = header?.textContent?.split(" ")[1] || "unknown";
-
- 
+  if(header){
+    headertext = header.textContent
+    console.log('header:- ',headertext)
+    if(headertext.includes('PreTest') || headertext.includes('PostTest')){
+      questionId = 'I.1.5'
+    }
+    else {questionId = headertext.split(" ")[1] || "unknown";}
+    console.log('qid:- ',questionId)
+ }
   const timerDisplay = document.createElement("div");
   timerDisplay.style.marginTop = "10px";
   timerDisplay.style.padding = "6px 12px";
@@ -365,7 +376,7 @@ function startQuestionTimer(accordionElement) {
   stopBtn.style.cursor = "pointer";
   stopBtn.addEventListener("click", () => {
     if(questionId=='I.1.5' && studyState== 'post'){
-      alert('Test completed')
+      alert('Test completed.\n\n Please proceed to the Prolific survey page!!')
       questionStatus[questionId]=true
       console.log('Test completed ',questionStatus)
       chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
