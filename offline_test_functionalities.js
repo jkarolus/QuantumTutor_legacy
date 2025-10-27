@@ -460,7 +460,7 @@ function stopQuestionTimer(log) {
    });
     const timeSpent = (Date.now() - timerStartTime)/60000;
     if (currentQuestionId) {
-      saveTimeSpentToServer(currentQuestionId, g_label,timeSpent,log);
+      saveTimeSpentToServer(currentQuestionId, u_id,timeSpent,log);
     }
 
     if (currentTimerElement && currentTimerElement.parentNode) {

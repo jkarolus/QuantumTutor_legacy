@@ -51,7 +51,7 @@ async function getLLMResponse(question,solution,errorMessage) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer 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'
+              'Authorization': 'API KEY '
             },
             body: JSON.stringify({
               model: 'gpt-4o-mini',
