@@ -376,7 +376,7 @@ function startQuestionTimer(accordionElement) {
   stopBtn.style.cursor = "pointer";
   stopBtn.addEventListener("click", () => {
     if(questionId=='I.1.5' && studyState== 'post'){
-      alert('Test completed.\n\n Please proceed to the Prolific survey page!!')
+      alert('Test completed.\n\n Please proceed to the Qualtrics survey page!!')
       questionStatus[questionId]=true
       console.log('Test completed ',questionStatus)
       chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
@@ -460,7 +460,7 @@ function stopQuestionTimer(log) {
    });
     const timeSpent = (Date.now() - timerStartTime)/60000;
     if (currentQuestionId) {
-      saveTimeSpentToServer(currentQuestionId, u_id,timeSpent,log);
+      saveTimeSpentToServer(currentQuestionId, u_id,g_label,timeSpent,log);
     }
 
     if (currentTimerElement && currentTimerElement.parentNode) {

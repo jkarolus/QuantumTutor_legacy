@@ -58,9 +58,9 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
 
 
   }
-  async function saveTimeSpentToServer(questionId, u_id,timeSpentMs,log)  {
+  async function saveTimeSpentToServer(questionId, u_id,q_type,timeSpentMs,log)  {
 
-    console.log('Received content to save:- ',questionId,u_id, timeSpentMs,log)
+    console.log('Received content to save:- ',questionId,u_id,q_type, timeSpentMs,log)
     try {
       const response = await fetch('https://survey.dfki.de/quantumtutor', {
       method: 'POST',
@@ -71,6 +71,7 @@ async function saveToServer(question,solution,hintResponse,uid,qid,cid,timestamp
       body: JSON.stringify({
         "question": questionId,
         "User ID": u_id,
+        "Question ID": q_type,
         "Time Spent": timeSpentMs,
         "log": log
       })
