@@ -24,6 +24,26 @@ function extractUrlParamsAndStore() {
 }
 extractUrlParamsAndStore()
 
+function checkLoginStatus(accordion){
+  console.log('Checking login status')
+  const accordions = document.querySelectorAll(".CoderciseList .Accordion");
+  const header = accordion.querySelector(".Accordion__title");
+  if (header) {
+    header.click(); 
+    const logarr = document.querySelectorAll(".CoderciseList .Accordion .CoderciseEditorOverlay")
+    console.log('Checking login status: array',logarr)
+    if(logarr.length > 0){
+      chrome.storage.local.clear(() => {
+        console.log("✅ All local storage data cleared!");
+        });
+      alert('Please Sign up/Login before proceeding to the test')
+    }
+    else{
+      header.click();
+    }
+}
+}
+
 console.log("Extracted type:", g_label); 
 
 function loadExtensionState() {
@@ -152,6 +172,7 @@ function startPreTest(allowedTitle) {
     if(titleText.includes('I.1.5')){
       titleElement.textContent = 'PreTest'
       titleText= 'PreTest'
+      checkLoginStatus(accordion)
     }
     if (titleText !== allowedTitle) {
       accordion.style.visibility = "hidden";
