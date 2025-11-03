@@ -24,7 +24,7 @@ function extractUrlParamsAndStore() {
 }
 extractUrlParamsAndStore()
 
-//override git pull
+//override 
 function checkLoginStatus(accordion){
   console.log('Checking login status')
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
