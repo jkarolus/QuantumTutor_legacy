@@ -89,6 +89,10 @@ function loadExtensionState() {
         const cmLines = accordion.querySelectorAll(".cm-line");
         const cmLineTexts = Array.from(cmLines).map(line => line.textContent.trim()).join(" ");
         code_len.push(cmLineTexts.length)
+        const summary = accordion.querySelector("#topic-codercise-container summary")
+        if (summary) {
+          summary.classList.add("highlight-summary");
+        }
       }
     }, 1000);//---
     });
@@ -188,7 +192,8 @@ function startMainStudy(){
   chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus ,questionTimings: questionTimings }, () => {
   console.log("SSavung state with questionStatus:- ",questionStatus);});
   chrome.storage.local.get(["currentState", "questionStatus"], (result) => {
-    console.log("Read back:", result);});
+    //console.log("Read back:", result);
+    });
 
   const accordions = document.querySelectorAll(".CoderciseList .Accordion");
   accordions.forEach(accordion => {
@@ -210,7 +215,7 @@ function startMainStudy(){
 function checkQuestionStatus(){
   let temp = true
   chrome.storage.local.get(["currentState", "questionStatus"], (result) => {
-    console.log("Read back:", result);
+    //console.log("Read back:", result);
     if(result.questionStatus) { 
       questionStatus=result.questionStatus
       currentState = result.currentState

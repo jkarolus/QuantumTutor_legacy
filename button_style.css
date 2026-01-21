@@ -45,3 +45,12 @@
 .floating-panel button:hover {
   background-color: #0056b3;
 }
+
+.highlight-summary {
+  background-color: #fff3cd;
+  border: 2px solid #ff9800;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-weight: bold;
+  cursor: pointer;
+}

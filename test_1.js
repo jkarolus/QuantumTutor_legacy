@@ -1,4 +1,4 @@
-console.log('In test1 js')
+console.log('In test1 js_01')
 loadExtensionState()
 
 
@@ -66,7 +66,7 @@ document.addEventListener("submit", function (e) {
     }
     const fullContent = content.join("\n");
     console.log("Extracted content:\n", fullContent);
-
+    
     //Get the code
 
 
@@ -113,26 +113,30 @@ document.addEventListener("submit", function (e) {
     }
     else if(g_label == 'bhgv'){
 
-    const clickedBtn = document.querySelectorAll("button.CoderciseEditor__submit-button")
-    if (clickedBtn) {
+    //const clickedBtn = document.querySelectorAll("button.CoderciseEditor__submit-button")
+    //if (clickedBtn) {
       console.log("Submit clicked!");
       // Traverse to the code block container
       if (form.querySelector(".CoderciseEditor__container")) {
 
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
+        /*
         let errorMsg = ''
         const intervalId = setInterval(() => {
             console.log('found error element')
             const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div");
             if(errorEl) { 
               errorMsg = errorEl.textContent
+              if(errorMsg.includes('Error:')){
+                errorEl.textContent=''
+              }
             }
-          }, 500);
+          }, 500);*/
         //LLM Response
         async function handleLLMResponse() {
           console.log('handle response called')
-          
+          let errorMsg = ''
           const result = await getLLMResponse(fullContent,cmLineTexts,errorMsg);
           if (result) {
             console.log('Result from LLM: ',result)
@@ -147,6 +151,13 @@ document.addEventListener("submit", function (e) {
           
           const intervalId = setInterval(() => {
               const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
+              
+              if(errorEl) { 
+              errorMsg = errorEl.textContent
+              if(errorMsg.includes('Error:')){
+                errorEl.textContent=''
+              }
+            }
               //const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
               if (errorEl && errorEl.textContent != 'Correct!') {
                 console.log('Error text :- ',errorEl.textContent)
@@ -179,13 +190,13 @@ document.addEventListener("submit", function (e) {
           
           })();
         
-    }
+    //}
   }
 
   }
   else if(g_label == 'cfdx'){
-    const clickedBtn = document.querySelectorAll("button.CoderciseEditor__submit-button")
-    if (clickedBtn) {
+    //const clickedBtn = document.querySelectorAll("button.CoderciseEditor__submit-button")
+    //if (clickedBtn) {
       console.log("Submit clicked!");
       if (form.querySelector(".CoderciseEditor__container")) {
         const formData = new FormData(form);
@@ -204,7 +215,12 @@ document.addEventListener("submit", function (e) {
       
         
         const intervalId = setInterval(() => {
+            let errorMsg = ''
             const errorEl = accordions[index].querySelector(".CoderciseEditor > div > div"); 
+            errorMsg = errorEl.textContent
+            if(errorMsg.includes('Error:')){
+              errorEl.textContent=''
+            }
             const message = getRandomExplanation(q_id);
             //const button = accordions[index].querySelector(".CoderciseEditor__button-group__expanded button");
             if (errorEl && errorEl.textContent != 'Correct!') {
@@ -234,7 +250,7 @@ document.addEventListener("submit", function (e) {
             }
 
         }, 500);
-    }
+    //}
   }
 
   }
