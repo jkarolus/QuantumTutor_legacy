@@ -1,7 +1,7 @@
 
 let alertShown = false;
 const accordionStatus = [true, true, true, true, true]; 
-let studyState = 'start';
+let studyState = 'main';
 let questionStatus = {'I.1.1':false, 'I.1.2':false, 'I.1.3':false, 'I.1.4':false, 'I.1.5':false}; 
 let accordianHeadings = ['I.1.1','I.1.2','I.1.3','I.1.4','I.1.5']
 let timer_status = 'not_started'
@@ -9,7 +9,7 @@ let g_label = '';
 let u_id = '';
 let code_len = [];
 let current_timing = [];
-let questionTimings = {'I.1.1':0.0, 'I.1.2':0.0, 'I.1.3':0.0, 'I.1.4':0.0, 'I.1.5':0.0};
+let questionTimings = {'I.1.1':0.0, 'I.1.2':0.0, 'I.1.3':0.0, 'I.1.4':0.0, 'I.1.5':0.0}; //for chrome local storage
 
 function extractUrlParamsAndStore() {
   const params = new URLSearchParams(window.location.search);
@@ -67,16 +67,8 @@ function loadExtensionState() {
       questionTimings=result.questionTimings
       console.log('Retrieved questionTimings',questionTimings)
     }
-    if(studyState == 'start') {
-      createStartTestButton()}
-    if (studyState == 'pre') {
-      startPreTest('PreTest')
-    }
-    else if(studyState == 'main') {
-      startMainStudy()
-    }
-    else if(studyState== 'post') {
-      startPostStudy()
+    if(studyState == 'main') {
+      createStartTestButton()
     }
   });
 }
@@ -190,24 +182,10 @@ function startPreTest(allowedTitle) {
 function startMainStudy(){
   studyState = 'main'
   chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus ,questionTimings: questionTimings }, () => {
-  console.log("SSavung state with questionStatus:- ",questionStatus);});
+  console.log("Saving state with questionStatus:- ",questionStatus);});
   chrome.storage.local.get(["currentState", "questionStatus"], (result) => {
     //console.log("Read back:", result);
     });
-
-  const accordions = document.querySelectorAll(".CoderciseList .Accordion");
-  accordions.forEach(accordion => {
-    const titleElement = accordion.querySelector(".Accordion__title h2");
-    if (!titleElement) return;
-
-    const titleText = titleElement.textContent;
-    if (titleText.includes('PreTest') || titleText.includes('PostTest') ) {
-      accordion.style.visibility = "hidden";
-    }
-    else{
-      accordion.style.visibility = "visible";
-    }
-  });
   console.log('State:-', studyState)
   autoHideCompareButton();
 }
@@ -220,19 +198,6 @@ function checkQuestionStatus(){
       questionStatus=result.questionStatus
       currentState = result.currentState
     
-    for (const qid in questionStatus) {
-      if(qid == 'I.1.5' && currentState == 'pre') continue
-      else if(questionStatus[qid] == false){
-        temp = false
-      }
-    } 
-    if(temp){
-      questionStatus['I.1.5']=false
-      chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
-      console.log('Starting post test',questionStatus)
-    });
-      startPostStudy()
-    }
     }
   });
 
@@ -342,10 +307,7 @@ function startQuestionTimer(accordionElement) {
   if(header){
     headertext = header.textContent
     console.log('header:- ',headertext)
-    if(headertext.includes('PreTest') || headertext.includes('PostTest')){
-      questionId = 'I.1.5'
-    }
-    else {questionId = headertext.split(" ")[1] || "unknown";}
+    questionId = headertext.split(" ")[1] || "unknown";
     console.log('qid:- ',questionId)
  }
   const timerDisplay = document.createElement("div");
@@ -380,11 +342,7 @@ function startQuestionTimer(accordionElement) {
   ) {
     timeLeft = questionTimings[questionId].timeLeft;
   } else {
-    if (questionId === "I.1.5") {
-      timeLeft = 7.5 * 60; 
-    } else {
-      timeLeft = 5 * 60;   
-    }
+    timeLeft = QUESTION_TIME[questionId]?.time || 5 * 60;   
   }
   const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const secs = String(timeLeft % 60).padStart(2, "0");
@@ -402,17 +360,6 @@ function startQuestionTimer(accordionElement) {
   stopBtn.style.borderRadius = "4px";
   stopBtn.style.cursor = "pointer";
   stopBtn.addEventListener("click", () => {
-    if(questionId=='I.1.5' && studyState== 'post'){
-      alert('Test completed.\n\n Please proceed to the Qualtrics survey page!!')
-      questionStatus[questionId]=true
-      console.log('Test completed ',questionStatus)
-      chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
-      console.log('State saved after test finished',questionStatus)
-      closeQuestion()
-    });
-      stopQuestionTimer('Test completed');
-    }
-    else{
     questionStatus[questionId]=true
     chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
       console.log('State saved after finish button clicked',questionStatus)
@@ -420,10 +367,7 @@ function startQuestionTimer(accordionElement) {
     stopQuestionTimer('Finish button clicked');
     closeQuestion()
     checkQuestionStatus()
-    if(studyState== 'pre'){
-      startMainStudy()
-    }
-      }
+    completeTest()
   });
   timerDisplay.appendChild(stopBtn);
   timer_status = 'running'
@@ -440,11 +384,13 @@ function startQuestionTimer(accordionElement) {
   }*/
   // Resume timer if question was stopped previously (accordion collapse)
   if (questionTimings[questionId] && questionTimings[questionId].status === "stopped") {
-    timeLeft = questionTimings[questionId].timeLeft || 5 * 60;
+    //timeLeft = questionTimings[questionId].timeLeft || 5 * 60;
+    timeLeft = QUESTION_TIME[questionId]?.time || 5 * 60;
     console.log(`Resuming timer for ${questionId} from ${timeLeft} seconds`);
   } else {
     // Otherwise start fresh
-    timeLeft = (questionId === 'I.1.5') ? 7.5 * 60 : 5 * 60;
+    //timeLeft = 5 * 60;
+    timeLeft = QUESTION_TIME[questionId]?.time || 5 * 60;
     console.log(`Starting new timer for ${questionId}`);
   }
 
@@ -456,9 +402,6 @@ function startQuestionTimer(accordionElement) {
     if (timeLeft <= 0) {
       stopQuestionTimer('Timer Ran out'); 
       closeQuestion()
-      if(questionId =='I.1.5'){
-        startMainStudy()
-      }
       if (questionId in questionStatus){
         questionStatus[questionId]=true
         chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus ,questionTimings: questionTimings }, () => {
@@ -468,6 +411,27 @@ function startQuestionTimer(accordionElement) {
       }
     }
   }, 1000);
+}
+
+function completeTest(){
+  chrome.storage.local.get(["currentState", "questionStatus"], (result) => {
+      console.log('Checking status after submit-',result.questionStatus)
+      if(result.questionStatus) { 
+      questionStatus=result.questionStatus
+      currentState = result.currentState
+    }
+    });
+    const allTrue = Object.values(questionStatus).every(v => v === true);
+    if (allTrue) {
+      alert('Test completed.\n\n Please proceed to the Qualtrics survey page!!')
+      questionStatus[questionId]=true
+      console.log('Test completed ',questionStatus)
+      chrome.storage.local.set({ currentState: studyState, questionStatus: questionStatus,questionTimings: questionTimings  }, () => {
+      console.log('State saved after test finished',questionStatus)
+      closeQuestion()
+    });
+      stopQuestionTimer('Test completed');
+    }
 }
 
 function stopQuestionTimer(log) {

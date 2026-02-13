@@ -1,11 +1,11 @@
-console.log('In test1 js_01')
+console.log('In test Prolific js_01')
 loadExtensionState()
 
 
 console.log("Extracted type:", g_label); 
 
 function createStartTestButton() {
-  if(studyState == 'start')
+  if(studyState == 'main')
   {
     const panel = document.createElement("div");
     panel.className = "floating-panel";
@@ -23,7 +23,7 @@ function createStartTestButton() {
       timestamp = Date.now()
       saveStartingToServer(u_id,timestamp,g_label)
       closeQuestion()
-      startPreTest('PreTest')
+      startMainStudy()
       panel.remove();
     });
     panel.appendChild(btn);

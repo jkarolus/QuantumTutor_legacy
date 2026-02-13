@@ -7,7 +7,7 @@
   "content_scripts": [
     {
       "matches": ["https://pennylane.ai/*"],
-      "js": ["save_data.js","offline_test_functionalities.js","expertHints.js","connect_llm.js","test_1.js"],
+      "js": ["config.js","save_data.js","offline_test_functionalities.js","expertHints.js","connect_llm.js","test_1.js"],
       "css": ["button_style.css"]
     }
   ],
