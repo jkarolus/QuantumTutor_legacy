@@ -2,12 +2,12 @@
   "manifest_version": 3,
   "name": "Pennylane Ext version-",
   "version": "1.0",
-  "permissions": ["scripting", "activeTab","storage"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
       "matches": ["https://pennylane.ai/*"],
-      "js": ["config.js","save_data.js","offline_test_functionalities.js","expertHints.js","connect_llm.js","test_1.js"],
+      "js": ["config.js", "helpers.js", "main.js"],
       "css": ["button_style.css"]
     }
   ],

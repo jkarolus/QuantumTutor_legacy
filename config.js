@@ -1,10 +1,51 @@
-// config.js
-
-const QUESTION_TIME = {
-  "I.1.1": { time: 5 * 60 },
-  "I.1.2": { time: 5 * 60 },
-  "I.1.3": { time: 5 * 60 },
-  "I.1.4": { time: 5 * 60 },
-  "I.1.5": { time: 7.5 * 60 }
+const APP_CONFIG = {
+  modes: {
+    vanilla: 'mkjn',
+    llm: 'bhgv',
+  },
+  theoryModes: {
+    legacy: 'jrkl',
+    hideTheory: 'eism',
+  },
+  questionIds: ['I.1.1', 'I.1.2', 'I.1.3', 'I.1.4', 'I.1.5'],
+  questionTime: {
+    'I.1.1': 5 * 60,
+    'I.1.2': 5 * 60,
+    'I.1.3': 5 * 60,
+    'I.1.4': 5 * 60,
+    'I.1.5': 7.5 * 60,
+  },
+  storageKeys: ['currentState', 'questionStatus', 'g_label', 'g_therory', 'questionTimings', 'u_id'],
+  selectors: {
+    accordion: '.CoderciseList .Accordion',
+    accordionTitle: '.Accordion__title',
+    accordionTitleHeading: '.Accordion__title h2',
+    codeLine: '.cm-line',
+    compareButton: '.CoderciseEditor__show-solutions-button',
+    editorContainer: '.CoderciseEditor__container',
+    editorMessage: '.CoderciseEditor > div > div',
+    overlay: '.CoderciseList .Accordion .CoderciseEditorOverlay',
+    questionContainer: '.CoderciseDescription__container',
+    summary: '#topic-codercise-container summary',
+    startPanel: '.floating-panel',
+    rightTheorySection: '#topic-theory-container',
+  },
+  endpoints: {
+    save: 'https://survey.dfki.de/quantumtutor',
+    llm: 'https://survey.dfki.de/quantumtutorllm',
+  },
+  requestHeaders: {
+    'Content-Type': 'application/json',
+    Authorization: 'mysecret123test',
+  },
 };
 
+const DEFAULT_QUESTION_STATUS = APP_CONFIG.questionIds.reduce((acc, questionId) => {
+  acc[questionId] = false;
+  return acc;
+}, {});
+
+const DEFAULT_QUESTION_TIMINGS = APP_CONFIG.questionIds.reduce((acc, questionId) => {
+  acc[questionId] = 0.0;
+  return acc;
+}, {});
