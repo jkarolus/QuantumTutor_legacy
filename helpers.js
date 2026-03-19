@@ -22,10 +22,12 @@ function getAccordions() {
 
 function parseQueryParams(search = window.location.search) {
   const params = new URLSearchParams(search);
+  const theoryMode = params.get('theory') || params.get('therory') || APP_CONFIG.theoryModes.legacy;
+
   return {
     u_id: params.get('user') || '',
     g_label: params.get('type') || '',
-    g_therory: params.get('therory') || APP_CONFIG.theoryModes.legacy,
+    g_therory: theoryMode,
   };
 }
 
@@ -34,26 +36,56 @@ function applyTheoryLayout(theoryMode) {
     return null;
   }
 
+  const hideElement = (element) => {
+    if (!element) {
+      return;
+    }
+
+    element.style.display = 'none';
+    element.style.visibility = 'hidden';
+    element.style.width = '0';
+    element.style.maxWidth = '0';
+    element.style.minWidth = '0';
+    element.style.margin = '0';
+    element.style.padding = '0';
+    element.style.border = '0';
+    element.style.flex = '0 0 0';
+    element.setAttribute('aria-hidden', 'true');
+  };
+
   const hideRightSection = () => {
     const rightSection = document.querySelector(APP_CONFIG.selectors.rightTheorySection);
     if (!rightSection) {
       return false;
     }
 
-    rightSection.style.display = 'none';
-    rightSection.style.visibility = 'hidden';
-    rightSection.setAttribute('aria-hidden', 'true');
+    hideElement(rightSection);
+    hideElement(rightSection.parentElement);
     return true;
   };
 
-  if (hideRightSection()) {
-    return null;
-  }
+  const hideRelatedTheoryButtons = () => {
+    let hiddenCount = 0;
+
+    document.querySelectorAll('button').forEach((button) => {
+      const label = button.textContent?.trim().toLowerCase();
+      if (!label || !label.includes('open related theory')) {
+        return;
+      }
+
+      hideElement(button);
+      hiddenCount += 1;
+    });
+
+    return hiddenCount > 0;
+  };
+
+  hideRightSection();
+  hideRelatedTheoryButtons();
 
   const observer = new MutationObserver(() => {
-    if (hideRightSection()) {
-      observer.disconnect();
-    }
+    hideRightSection();
+    hideRelatedTheoryButtons();
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
