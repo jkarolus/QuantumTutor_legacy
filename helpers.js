@@ -92,6 +92,39 @@ function applyTheoryLayout(theoryMode) {
   return observer;
 }
 
+function expandSupplementaryDetails() {
+  document.querySelectorAll('details').forEach((detailsElement) => {
+    const summary = detailsElement.querySelector('summary');
+    const summaryText = summary?.textContent?.trim().toLowerCase() || '';
+
+    if (!summaryText.startsWith('hint') && !summaryText.startsWith('example')) {
+      return;
+    }
+
+    detailsElement.open = true;
+    detailsElement.setAttribute('open', '');
+
+    if (summary && !summary.dataset.quantumTutorLockedOpen) {
+      summary.dataset.quantumTutorLockedOpen = 'true';
+      summary.addEventListener('click', (event) => {
+        event.preventDefault();
+        detailsElement.open = true;
+        detailsElement.setAttribute('open', '');
+      });
+    }
+
+    if (!detailsElement.dataset.quantumTutorLockedOpen) {
+      detailsElement.dataset.quantumTutorLockedOpen = 'true';
+      detailsElement.addEventListener('toggle', () => {
+        if (!detailsElement.open) {
+          detailsElement.open = true;
+          detailsElement.setAttribute('open', '');
+        }
+      });
+    }
+  });
+}
+
 function collectQuestionContent(questionContainer) {
   const content = [];
 

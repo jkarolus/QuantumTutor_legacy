@@ -24,6 +24,7 @@
     console.log('QuantumTutor main initialized');
     await syncQueryParams();
     await loadStoredState();
+    expandSupplementaryDetails();
     bindAccordionListeners();
     bindSubmitListener();
     renderStartButton();
@@ -73,6 +74,7 @@
       state.theoryObserver.disconnect();
     }
     state.theoryObserver = applyTheoryLayout(state.g_therory);
+    expandSupplementaryDetails();
   }
 
   function bindAccordionListeners() {
@@ -83,6 +85,8 @@
     getAccordions().forEach((accordion) => {
       accordion.addEventListener('click', () => {
         window.setTimeout(() => {
+          expandSupplementaryDetails();
+
           if (!accordion.classList.contains('Accordion__expanded')) {
             stopQuestionTimer('Question Closed');
             return;
