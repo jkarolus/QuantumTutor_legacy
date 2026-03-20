@@ -7,13 +7,12 @@ const APP_CONFIG = {
     legacy: 'jrkl',
     hideTheory: 'eism',
   },
-  questionIds: ['I.1.1', 'I.1.2', 'I.1.3', 'I.1.4', 'I.1.5'],
+  questionIds: ['I.1.1', 'I.1.2', 'I.1.3', 'I.1.4'],
   questionTime: {
     'I.1.1': 5 * 60,
     'I.1.2': 5 * 60,
     'I.1.3': 5 * 60,
     'I.1.4': 5 * 60,
-    'I.1.5': 7.5 * 60,
   },
   storageKeys: ['currentState', 'questionStatus', 'g_label', 'g_therory', 'questionTimings', 'u_id'],
   selectors: {

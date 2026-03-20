@@ -25,6 +25,7 @@
     await syncQueryParams();
     await loadStoredState();
     expandSupplementaryDetails();
+    hideDisabledAccordions();
     bindAccordionListeners();
     bindSubmitListener();
     renderStartButton();
@@ -75,6 +76,15 @@
     }
     state.theoryObserver = applyTheoryLayout(state.g_therory);
     expandSupplementaryDetails();
+  }
+
+  function hideDisabledAccordions() {
+    getAccordions().forEach((accordion) => {
+      const titleElement = accordion.querySelector(APP_CONFIG.selectors.accordionTitleHeading);
+      if (titleElement && titleElement.textContent.includes('I.1.5')) {
+        accordion.style.display = 'none';
+      }
+    });
   }
 
   function bindAccordionListeners() {
@@ -214,46 +224,7 @@
     await persistStudyState();
   }
 
-  async function startPreTest(allowedTitle) {
-    state.studyState = 'pre';
-    await persistStudyState();
 
-    getAccordions().forEach((accordion) => {
-      const titleElement = accordion.querySelector(APP_CONFIG.selectors.accordionTitleHeading);
-      if (!titleElement) {
-        return;
-      }
-
-      let titleText = titleElement.textContent;
-      if (titleText.includes('I.1.5')) {
-        titleElement.textContent = 'PreTest';
-        titleText = 'PreTest';
-        checkLoginStatus(accordion);
-      }
-      if (titleText !== allowedTitle) {
-        accordion.style.visibility = 'hidden';
-      }
-    });
-  }
-
-  async function startPostStudy() {
-    state.studyState = 'post';
-    await persistStudyState();
-
-    getAccordions().forEach((accordion) => {
-      const titleElement = accordion.querySelector(APP_CONFIG.selectors.accordionTitleHeading);
-      if (!titleElement) {
-        return;
-      }
-
-      if (titleElement.textContent.includes('PreTest') || titleElement.textContent.includes('PostTest')) {
-        accordion.style.visibility = 'visible';
-        titleElement.textContent = 'PostTest';
-      } else {
-        accordion.style.visibility = 'hidden';
-      }
-    });
-  }
 
   async function checkLoginStatus(accordion) {
     const header = accordion.querySelector(APP_CONFIG.selectors.accordionTitle);
@@ -568,8 +539,6 @@
   }
 
   window.QuantumTutorApp = {
-    startPreTest,
-    startPostStudy,
     startMainStudy,
     closeQuestion,
     stopQuestionTimer,
