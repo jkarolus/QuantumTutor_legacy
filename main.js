@@ -369,7 +369,8 @@
 
       if (state.timerStartTime) {
         const timeSpent = (Date.now() - state.timerStartTime) / 1000;
-        logToServer(state.currentQuestionId, state.u_id, state.g_label, state.g_therory, timeSpent, log);
+        const timestamp = Date.now();
+        logToServer(timestamp, state.currentQuestionId, state.u_id, state.g_label, state.g_therory, timeSpent, log);
       }
     }
 

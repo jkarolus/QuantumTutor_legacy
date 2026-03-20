@@ -189,6 +189,7 @@ async function saveToServer(question, solution, hintResponse, uid, questionId, c
       u_id: uid,
       condition: condition,
       theory_condition: theoryState,
+      event: "SUBMIT_CLICK",
       q_id: questionId,
       question,
       fullCode,
@@ -208,6 +209,7 @@ async function saveStartingToServer(uid, timestamp, condition, theoryState) {
       u_id: uid,
       condition: condition,
       theory_condition: theoryState,
+      event: "STUDY_START"
     });
   } catch (error) {
     console.error('Error communicating with server:', error);
@@ -223,7 +225,7 @@ async function logToServer(timestamp, questionId, userId, condition, theoryState
       theory_condition: theoryState,
       q_id: questionId,
       time_spent_in_sec: timeSpentMinutes,
-      log,
+      event: log,
     });
   } catch (error) {
     console.error('Error communicating with server:', error);
