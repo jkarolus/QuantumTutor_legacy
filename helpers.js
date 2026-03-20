@@ -179,15 +179,17 @@ async function postJson(url, body) {
   return response;
 }
 
-async function saveToServer(question, solution, hintResponse, uid, qid, cid, timestamp, correctAnswer, codeLength) {
+async function saveToServer(question, solution, hintResponse, uid, questionId, condition, theoryState, timestamp, correctAnswer, codeLength) {
   const cleanCode = solution.map((line) => line.trim()).filter((line) => line !== '');
   const fullCode = cleanCode.join('\n');
 
   try {
     await postJson(APP_CONFIG.endpoints.save, {
-      u_id: uid,
       timestamp,
-      Question_ID: cid,
+      u_id: uid,
+      condition: condition,
+      theory_condition: theoryState,
+      q_id: questionId,
       question,
       fullCode,
       hintResponse,
@@ -199,25 +201,28 @@ async function saveToServer(question, solution, hintResponse, uid, qid, cid, tim
   }
 }
 
-async function saveStartingToServer(uid, timestamp, cid) {
+async function saveStartingToServer(uid, timestamp, condition, theoryState) {
   try {
     await postJson(APP_CONFIG.endpoints.save, {
-      User_ID: uid,
       timestamp,
-      Question_ID: cid,
+      u_id: uid,
+      condition: condition,
+      theory_condition: theoryState,
     });
   } catch (error) {
     console.error('Error communicating with server:', error);
   }
 }
 
-async function saveTimeSpentToServer(questionId, userId, questionType, timeSpentMinutes, log) {
+async function logToServer(timestamp, questionId, userId, condition, theoryState, timeSpentMinutes, log) {
   try {
     await postJson(APP_CONFIG.endpoints.save, {
-      question: questionId,
-      'User ID': userId,
-      'Question ID': questionType,
-      'Time Spent': timeSpentMinutes,
+      timestamp,
+      u_id: userId,
+      condition: condition,
+      theory_condition: theoryState,
+      q_id: questionId,
+      time_spent_in_sec: timeSpentMinutes,
       log,
     });
   } catch (error) {

@@ -197,7 +197,7 @@
     });
     button.addEventListener('click', async () => {
       const timestamp = Date.now();
-      await saveStartingToServer(state.u_id, timestamp, state.g_label);
+      await saveStartingToServer(state.u_id, timestamp, state.g_label, state.g_therory);
       closeQuestion();
       await startMainStudy();
       panel.remove();
@@ -397,8 +397,8 @@
       });
 
       if (state.timerStartTime) {
-        const timeSpent = (Date.now() - state.timerStartTime) / 60000;
-        saveTimeSpentToServer(state.currentQuestionId, state.u_id, state.g_label, timeSpent, log);
+        const timeSpent = (Date.now() - state.timerStartTime) / 1000;
+        logToServer(state.currentQuestionId, state.u_id, state.g_label, state.g_therory, timeSpent, log);
       }
     }
 
@@ -476,6 +476,7 @@
           state.u_id,
           submission.q_id,
           state.g_label,
+          state.g_therory,
           submission.curTime,
           submission.correctAnswer,
           state.codeLengths,
@@ -496,6 +497,7 @@
         state.u_id,
         submission.q_id,
         state.g_label,
+        state.g_therory,
         submission.curTime,
         submission.correctAnswer,
         state.codeLengths,
@@ -531,6 +533,7 @@
           state.u_id,
           submission.q_id,
           state.g_label,
+          state.g_therory,
           submission.curTime,
           submission.correctAnswer,
           state.codeLengths,
@@ -551,6 +554,7 @@
         state.u_id,
         submission.q_id,
         state.g_label,
+        state.g_therory,
         submission.curTime,
         submission.correctAnswer,
         state.codeLengths,
