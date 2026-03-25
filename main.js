@@ -137,6 +137,15 @@
       return;
     }
 
+    logCoderciseExtendToServer(
+      Date.now(),
+      questionId,
+      state.u_id,
+      state.g_label,
+      state.g_therory,
+      'CODERCISE_EXTENDED',
+    );
+
     window.setTimeout(() => {
       const compareButton = accordion.querySelector(APP_CONFIG.selectors.compareButton);
       if (compareButton) {

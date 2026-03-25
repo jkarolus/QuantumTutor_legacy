@@ -232,6 +232,21 @@ async function logToServer(timestamp, questionId, userId, condition, theoryState
   }
 }
 
+async function logCoderciseExtendToServer(timestamp, questionId, userId, condition, theoryState, log) {
+  try {
+    await postJson(APP_CONFIG.endpoints.save, {
+      timestamp,
+      u_id: userId,
+      condition: condition,
+      theory_condition: theoryState,
+      q_id: questionId,
+      event: log,
+    });
+  } catch (error) {
+    console.error('Error communicating with server:', error);
+  }
+}
+
 async function getLLMResponse(question, solution) {
   const cleanCode = solution.map((line) => line.trim()).filter((line) => line !== '');
   const fullCode = cleanCode.join('\n');
