@@ -9,12 +9,12 @@ const APP_CONFIG = {
   },
   questionIds: ['I.1.1', 'I.1.2', 'I.1.3', 'I.1.4'],
   questionTime: {
-    'I.1.1': 5 * 60,
-    'I.1.2': 5 * 60,
-    'I.1.3': 5 * 60,
-    'I.1.4': 5 * 60,
+    'I.1.1': 5 * 1,
+    'I.1.2': 5 * 1,
+    'I.1.3': 5 * 1,
+    'I.1.4': 5 * 1,
   },
-  storageKeys: ['currentState', 'questionStatus', 'g_label', 'g_therory', 'questionTimings', 'u_id'],
+  storageKeys: ['currentState', 'questionStatus', 'g_label', 'g_therory', 'questionTimings', 'u_id', 'studyStartTimestamp'],
   selectors: {
     accordion: '.CoderciseList .Accordion',
     accordionButton: '[data-testid="accordion-button"]',

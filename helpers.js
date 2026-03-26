@@ -216,7 +216,7 @@ async function saveStartingToServer(uid, timestamp, condition, theoryState) {
   }
 }
 
-async function logToServer(timestamp, questionId, userId, condition, theoryState, timeSpentMinutes, log) {
+async function logQuestionStartedToServer(timestamp, questionId, userId, condition, theoryState) {
   try {
     await postJson(APP_CONFIG.endpoints.save, {
       timestamp,
@@ -224,15 +224,14 @@ async function logToServer(timestamp, questionId, userId, condition, theoryState
       condition: condition,
       theory_condition: theoryState,
       q_id: questionId,
-      time_spent_in_sec: timeSpentMinutes,
-      event: log,
+      event: "QUESTION_STARTED",
     });
   } catch (error) {
     console.error('Error communicating with server:', error);
   }
 }
 
-async function logCoderciseExtendToServer(timestamp, questionId, userId, condition, theoryState, log) {
+async function logQuestionFinishedToServer(timestamp, questionId, userId, condition, theoryState, timeSpentSeconds, finishReason) {
   try {
     await postJson(APP_CONFIG.endpoints.save, {
       timestamp,
@@ -240,7 +239,24 @@ async function logCoderciseExtendToServer(timestamp, questionId, userId, conditi
       condition: condition,
       theory_condition: theoryState,
       q_id: questionId,
-      event: log,
+      time_spent_in_sec: timeSpentSeconds,
+      finish_reason: finishReason,
+      event: "QUESTION_FINISHED",
+    });
+  } catch (error) {
+    console.error('Error communicating with server:', error);
+  }
+}
+
+async function logStudyCompletedToServer(timestamp, userId, condition, theoryState, timeSpentSeconds) {
+  try {
+    await postJson(APP_CONFIG.endpoints.save, {
+      timestamp,
+      u_id: userId,
+      condition: condition,
+      theory_condition: theoryState,
+      time_spent_in_sec: timeSpentSeconds,
+      event: "STUDY_FINISHED",
     });
   } catch (error) {
     console.error('Error communicating with server:', error);

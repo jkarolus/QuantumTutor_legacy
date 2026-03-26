@@ -14,6 +14,7 @@
     currentQuestionId: null,
     timerStartTime: null,
     timeLeft: 0,
+    studyStartTimestamp: null,
     theoryObserver: null,
     startButtonRendered: false,
     accordionListenersBound: false,
@@ -69,6 +70,9 @@
     }
     if (stored.questionTimings) {
       state.questionTimings = stored.questionTimings;
+    }
+    if (stored.studyStartTimestamp) {
+      state.studyStartTimestamp = stored.studyStartTimestamp;
     }
     if (stored.currentState) {
       state.studyState = stored.currentState;
@@ -151,7 +155,7 @@
             return;
           }
 
-          await handleExpandedAccordion(accordion, questionId, !wasExpanded);
+          await handleExpandedAccordion(accordion, questionId);
         }, 100);
       });
     });
@@ -159,7 +163,7 @@
     state.accordionListenersBound = true;
   }
 
-  async function handleExpandedAccordion(accordion, questionId, shouldLogExtend = false) {
+  async function handleExpandedAccordion(accordion, questionId) {
     await refreshQuestionStatus();
 
     if (state.questionStatus[questionId] === true) {
@@ -173,17 +177,6 @@
     const summary = accordion.querySelector(APP_CONFIG.selectors.summary);
     if (summary) {
       summary.classList.add('highlight-summary');
-    }
-
-    if (shouldLogExtend) {
-      logCoderciseExtendToServer(
-        Date.now(),
-        questionId,
-        state.u_id,
-        state.g_label,
-        state.g_therory,
-        'CODERCISE_EXTENDED',
-      );
     }
 
     window.setTimeout(() => {
@@ -304,7 +297,7 @@
         return;
       }
 
-      handleExpandedAccordion(activeAccordion, activeQuestionId, false);
+      handleExpandedAccordion(activeAccordion, activeQuestionId);
     }, 100);
   }
 
@@ -313,6 +306,7 @@
       currentState: state.studyState,
       questionStatus: state.questionStatus,
       questionTimings: state.questionTimings,
+      studyStartTimestamp: state.studyStartTimestamp,
     });
   }
 
@@ -350,7 +344,9 @@
     });
     button.addEventListener('click', async () => {
       const timestamp = Date.now();
+      state.studyStartTimestamp = timestamp;
       await saveStartingToServer(state.u_id, timestamp, state.g_label, state.g_therory);
+      await storageSet({ studyStartTimestamp: state.studyStartTimestamp });
       await startMainStudy();
       panel.remove();
       state.startButtonRendered = false;
@@ -435,6 +431,13 @@
     state.currentQuestionId = questionId;
     state.timerStartTime = Date.now();
     state.timerStatus = 'running';
+    logQuestionStartedToServer(
+      state.timerStartTime,
+      questionId,
+      state.u_id,
+      state.g_label,
+      state.g_therory,
+    );
 
     state.currentTimer = window.setInterval(async () => {
       state.timeLeft -= 1;
@@ -483,6 +486,19 @@
     state.studyState = 'completed';
     await persistStudyState();
     syncQuestionSequence();
+
+    if (state.studyStartTimestamp) {
+      const timestamp = Date.now();
+      const totalStudyTimeInSeconds = (timestamp - state.studyStartTimestamp) / 1000;
+      logStudyCompletedToServer(
+        timestamp,
+        state.u_id,
+        state.g_label,
+        state.g_therory,
+        totalStudyTimeInSeconds,
+      );
+    }
+
     alert('Test completed.\n\n Please proceed to the Qualtrics survey page!!');
     stopQuestionTimer('Test completed');
   }
@@ -528,7 +544,17 @@
       if (state.timerStartTime) {
         const timeSpent = (Date.now() - state.timerStartTime) / 1000;
         const timestamp = Date.now();
-        logToServer(timestamp, state.currentQuestionId, state.u_id, state.g_label, state.g_therory, timeSpent, log);
+        if (log === 'Finish button clicked' || log === 'Timer Ran out') {
+          logQuestionFinishedToServer(
+            timestamp,
+            state.currentQuestionId,
+            state.u_id,
+            state.g_label,
+            state.g_therory,
+            timeSpent,
+            log,
+          );
+        }
       }
     }
 
