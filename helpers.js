@@ -166,6 +166,58 @@ function pollForEditorMessage(accordion, callback, intervalMs = 500) {
   }, intervalMs);
 }
 
+function observeEditorMessage(accordion, callback, intervalMs = 50) {
+  let messageElement = accordion.querySelector(APP_CONFIG.selectors.editorMessage);
+  let messageObserver = null;
+  let pollingId = null;
+
+  const runCallback = () => {
+    if (!messageElement) {
+      return;
+    }
+
+    callback(messageElement);
+  };
+
+  const attachObserver = () => {
+    if (!messageElement || messageObserver) {
+      return;
+    }
+
+    messageObserver = new MutationObserver(runCallback);
+    messageObserver.observe(messageElement, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  };
+
+  if (messageElement) {
+    attachObserver();
+  } else {
+    pollingId = window.setInterval(() => {
+      messageElement = accordion.querySelector(APP_CONFIG.selectors.editorMessage);
+      if (!messageElement) {
+        return;
+      }
+
+      window.clearInterval(pollingId);
+      pollingId = null;
+      attachObserver();
+      runCallback();
+    }, intervalMs);
+  }
+
+  return () => {
+    if (pollingId) {
+      window.clearInterval(pollingId);
+    }
+    if (messageObserver) {
+      messageObserver.disconnect();
+    }
+  };
+}
+
 async function postJson(url, body) {
   const response = await fetch(url, {
     method: 'POST',

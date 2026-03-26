@@ -677,12 +677,15 @@
       return;
     }
 
-    const intervalId = pollForEditorMessage(submission.accordion, async (errorElement) => {
-      if (errorElement.textContent.includes('Error:')) {
-        errorElement.textContent = '';
+    const stopObserving = observeEditorMessage(submission.accordion, async (errorElement) => {
+      const editorMessage = errorElement.textContent.trim();
+      if (!editorMessage) {
+        return;
       }
 
-      if (errorElement.textContent !== 'Correct!') {
+      stopObserving();
+
+      if (editorMessage !== 'Correct!') {
         errorElement.textContent = llmReply;
         errorElement.style.color = '#d00';
         errorElement.style.fontWeight = 'bold';
@@ -698,7 +701,6 @@
           submission.correctAnswer,
           state.codeLengths,
         );
-        window.clearInterval(intervalId);
         return;
       }
 
@@ -715,7 +717,6 @@
         submission.correctAnswer,
         state.codeLengths,
       );
-      window.clearInterval(intervalId);
     });
   }
 
