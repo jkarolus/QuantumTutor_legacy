@@ -14,7 +14,8 @@ const APP_CONFIG = {
     'I.1.3': 5 * 1,
     'I.1.4': 5 * 1,
   },
-  storageKeys: ['currentState', 'questionStatus', 'g_label', 'g_therory', 'questionTimings', 'u_id', 'studyStartTimestamp'],
+  debugQuestionTime: 10,
+  storageKeys: ['currentState', 'questionStatus', 'g_label', 'g_therory', 'questionTimings', 'u_id', 'studyStartTimestamp', 'debug'],
   selectors: {
     accordion: '.CoderciseList .Accordion',
     accordionButton: '[data-testid="accordion-button"]',

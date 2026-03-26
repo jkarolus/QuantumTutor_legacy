@@ -6,6 +6,7 @@
     questionTimings: { ...DEFAULT_QUESTION_TIMINGS },
     g_label: '',
     g_therory: APP_CONFIG.theoryModes.legacy,
+    debug: false,
     u_id: '',
     codeLengths: [],
     timerStatus: 'not_started',
@@ -40,8 +41,9 @@
     state.u_id = params.u_id;
     state.g_label = params.g_label;
     state.g_therory = params.g_therory;
+    state.debug = params.debug;
 
-    const payload = { g_therory: state.g_therory };
+    const payload = { g_therory: state.g_therory, debug: state.debug };
     if (state.u_id) {
       payload.u_id = state.u_id;
     }
@@ -64,6 +66,9 @@
     }
     if (stored.g_therory) {
       state.g_therory = stored.g_therory;
+    }
+    if (typeof stored.debug === 'boolean') {
+      state.debug = stored.debug;
     }
     if (stored.questionStatus) {
       state.questionStatus = stored.questionStatus;
@@ -452,6 +457,10 @@
   }
 
   function getInitialTimeLeft(questionId) {
+    if (state.debug) {
+      return APP_CONFIG.debugQuestionTime;
+    }
+
     const storedTiming = state.questionTimings[questionId];
     if (
       storedTiming &&

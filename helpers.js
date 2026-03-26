@@ -28,6 +28,7 @@ function parseQueryParams(search = window.location.search) {
     u_id: params.get('user') || '',
     g_label: params.get('type') || '',
     g_therory: theoryMode,
+    debug: params.get('debug') === 'true',
   };
 }
 
