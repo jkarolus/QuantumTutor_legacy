@@ -1,7 +1,7 @@
 (() => {
   const state = {
     alertShown: false,
-    studyState: 'main',
+    studyState: 'not_started',
     questionStatus: { ...DEFAULT_QUESTION_STATUS },
     questionTimings: { ...DEFAULT_QUESTION_TIMINGS },
     g_label: '',
@@ -18,6 +18,8 @@
     startButtonRendered: false,
     accordionListenersBound: false,
     submitListenerBound: false,
+    allowProgrammaticAccordionToggle: false,
+    activeAccordionObserver: null,
   };
 
   async function initialize() {
@@ -28,6 +30,7 @@
     hideDisabledAccordions();
     bindAccordionListeners();
     bindSubmitListener();
+    syncQuestionSequence();
     renderStartButton();
   }
 
@@ -93,30 +96,62 @@
     }
 
     getAccordions().forEach((accordion) => {
+      const header = accordion.querySelector(APP_CONFIG.selectors.accordionTitle);
+      if (header) {
+        const blockProtectedAccordionToggle = (event) => {
+          const questionId = getAccordionQuestionId(accordion);
+          const activeQuestionId = getNextPendingQuestionId();
+          const isProtectedActiveQuestion =
+            state.studyState === 'main' &&
+            questionId &&
+            questionId === activeQuestionId &&
+            accordion.classList.contains('Accordion__expanded') &&
+            state.questionStatus[questionId] !== true;
+
+          if (!state.allowProgrammaticAccordionToggle && isProtectedActiveQuestion) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+          }
+        };
+
+        header.addEventListener('pointerdown', blockProtectedAccordionToggle, true);
+        header.addEventListener('mousedown', blockProtectedAccordionToggle, true);
+        header.addEventListener('click', blockProtectedAccordionToggle, true);
+        header.addEventListener(
+          'keydown',
+          (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              blockProtectedAccordionToggle(event);
+            }
+          },
+          true,
+        );
+      }
+
       accordion.addEventListener('click', () => {
-        window.setTimeout(() => {
+        const wasExpanded = accordion.classList.contains('Accordion__expanded');
+
+        window.setTimeout(async () => {
           expandSupplementaryDetails();
 
-          if (!accordion.classList.contains('Accordion__expanded')) {
-            stopQuestionTimer('Question Closed');
-            return;
-          }
-
-          const codeLength = collectCodeLines(accordion).join(' ').length;
-          state.codeLengths.push(codeLength);
-
-          const summary = accordion.querySelector(APP_CONFIG.selectors.summary);
-          if (summary) {
-            summary.classList.add('highlight-summary');
-          }
-
           const questionId = getAccordionQuestionId(accordion);
-          if (!questionId) {
+          const activeQuestionId = getNextPendingQuestionId();
+          if (!questionId || questionId !== activeQuestionId) {
+            syncQuestionSequence();
             return;
           }
 
-          closeOtherAccordions(questionId);
-          handleExpandedAccordion(accordion, questionId);
+          if (wasExpanded && state.timerStatus === 'running' && state.currentQuestionId === questionId) {
+            return;
+          }
+
+          if (!accordion.classList.contains('Accordion__expanded')) {
+            forceAccordionOpen(accordion);
+            return;
+          }
+
+          await handleExpandedAccordion(accordion, questionId, !wasExpanded);
         }, 100);
       });
     });
@@ -124,27 +159,32 @@
     state.accordionListenersBound = true;
   }
 
-  async function handleExpandedAccordion(accordion, questionId) {
+  async function handleExpandedAccordion(accordion, questionId, shouldLogExtend = false) {
     await refreshQuestionStatus();
 
     if (state.questionStatus[questionId] === true) {
-      alert('Question already solved or timer ran out!');
-      const header = accordion.querySelector(APP_CONFIG.selectors.accordionTitle);
-      if (header) {
-        header.click();
-      }
-      accordion.style.visibility = 'hidden';
+      syncQuestionSequence();
       return;
     }
 
-    logCoderciseExtendToServer(
-      Date.now(),
-      questionId,
-      state.u_id,
-      state.g_label,
-      state.g_therory,
-      'CODERCISE_EXTENDED',
-    );
+    const codeLength = collectCodeLines(accordion).join(' ').length;
+    state.codeLengths.push(codeLength);
+
+    const summary = accordion.querySelector(APP_CONFIG.selectors.summary);
+    if (summary) {
+      summary.classList.add('highlight-summary');
+    }
+
+    if (shouldLogExtend) {
+      logCoderciseExtendToServer(
+        Date.now(),
+        questionId,
+        state.u_id,
+        state.g_label,
+        state.g_therory,
+        'CODERCISE_EXTENDED',
+      );
+    }
 
     window.setTimeout(() => {
       const compareButton = accordion.querySelector(APP_CONFIG.selectors.compareButton);
@@ -158,20 +198,114 @@
     }
   }
 
-  function closeOtherAccordions(currentlyOpen) {
+  function getNextPendingQuestionId() {
+    return APP_CONFIG.questionIds.find((questionId) => state.questionStatus[questionId] !== true) || null;
+  }
+
+  function getAccordionByQuestionId(questionId) {
+    return getAccordions().find((accordion) => getAccordionQuestionId(accordion) === questionId) || null;
+  }
+
+  function updateAccordionAffordance(accordion, shouldHide) {
+    const header = accordion.querySelector(APP_CONFIG.selectors.accordionTitle);
+    const accordionButton = accordion.querySelector(APP_CONFIG.selectors.accordionButton);
+    if (!header && !accordionButton) {
+      return;
+    }
+
+    const expandedIcon = accordion.querySelector(APP_CONFIG.selectors.accordionExpandedIcon);
+    if (expandedIcon) {
+      expandedIcon.style.display = shouldHide ? 'none' : '';
+      expandedIcon.style.visibility = shouldHide ? 'hidden' : '';
+      expandedIcon.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+    }
+
+    accordion.querySelectorAll(`${APP_CONFIG.selectors.accordionTitle} button`).forEach((element) => {
+      element.style.display = shouldHide ? 'none' : '';
+      element.style.visibility = shouldHide ? 'hidden' : '';
+      element.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+    });
+
+    if (header) {
+      header.style.cursor = shouldHide ? 'default' : '';
+    }
+
+    if (accordionButton) {
+      accordionButton.style.cursor = shouldHide ? 'default' : '';
+    }
+  }
+
+  function forceAccordionOpen(accordion) {
+    const header = accordion.querySelector(APP_CONFIG.selectors.accordionTitle);
+    if (header && !accordion.classList.contains('Accordion__expanded')) {
+      state.allowProgrammaticAccordionToggle = true;
+      header.click();
+      state.allowProgrammaticAccordionToggle = false;
+    }
+  }
+
+  function startActiveAccordionLock(accordion, questionId) {
+    if (state.activeAccordionObserver) {
+      state.activeAccordionObserver.disconnect();
+      state.activeAccordionObserver = null;
+    }
+
+    state.activeAccordionObserver = new MutationObserver(() => {
+      const activeQuestionId = getNextPendingQuestionId();
+      const shouldRemainOpen =
+        state.studyState === 'main' &&
+        activeQuestionId === questionId &&
+        state.questionStatus[questionId] !== true;
+
+      if (shouldRemainOpen && !accordion.classList.contains('Accordion__expanded')) {
+        window.setTimeout(() => {
+          forceAccordionOpen(accordion);
+        }, 0);
+      }
+    });
+
+    state.activeAccordionObserver.observe(accordion, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
+
+  function syncQuestionSequence() {
+    const activeQuestionId = state.studyState === 'main' ? getNextPendingQuestionId() : null;
+
     getAccordions().forEach((accordion) => {
       const questionId = getAccordionQuestionId(accordion);
-      if (!questionId || !APP_CONFIG.questionIds.includes(questionId) || questionId === currentlyOpen) {
+      if (!questionId || !APP_CONFIG.questionIds.includes(questionId)) {
         return;
       }
 
-      if (accordion.classList.contains('Accordion__expanded')) {
-        const header = accordion.querySelector(APP_CONFIG.selectors.accordionTitle);
-        if (header) {
-          header.click();
-        }
-      }
+      const shouldShow = questionId === activeQuestionId;
+      updateAccordionAffordance(accordion, shouldShow);
+      accordion.style.display = shouldShow ? '' : 'none';
+      accordion.style.visibility = shouldShow ? 'visible' : 'hidden';
     });
+
+    if (!activeQuestionId) {
+      return;
+    }
+
+    const activeAccordion = getAccordionByQuestionId(activeQuestionId);
+    if (!activeAccordion) {
+      return;
+    }
+
+    startActiveAccordionLock(activeAccordion, activeQuestionId);
+
+    window.setTimeout(() => {
+      expandSupplementaryDetails();
+
+      if (!activeAccordion.classList.contains('Accordion__expanded')) {
+        forceAccordionOpen(activeAccordion);
+        return;
+      }
+
+      handleExpandedAccordion(activeAccordion, activeQuestionId, false);
+    }, 100);
   }
 
   async function persistStudyState() {
@@ -193,7 +327,7 @@
   }
 
   function renderStartButton() {
-    if (state.studyState !== 'main' || state.startButtonRendered) {
+    if (state.studyState !== 'not_started' || state.startButtonRendered) {
       return;
     }
 
@@ -217,7 +351,6 @@
     button.addEventListener('click', async () => {
       const timestamp = Date.now();
       await saveStartingToServer(state.u_id, timestamp, state.g_label, state.g_therory);
-      closeQuestion();
       await startMainStudy();
       panel.remove();
       state.startButtonRendered = false;
@@ -231,6 +364,7 @@
   async function startMainStudy() {
     state.studyState = 'main';
     await persistStudyState();
+    syncQuestionSequence();
   }
 
 
@@ -257,7 +391,9 @@
       const titleElement = accordion.querySelector(APP_CONFIG.selectors.accordionTitleHeading);
       const header = accordion.querySelector(APP_CONFIG.selectors.accordionTitle);
       if (titleElement && header && accordion.classList.contains('Accordion__expanded')) {
+        state.allowProgrammaticAccordionToggle = true;
         header.click();
+        state.allowProgrammaticAccordionToggle = false;
       }
     });
   }
@@ -290,12 +426,7 @@
     finishButton.style.borderRadius = '4px';
     finishButton.style.cursor = 'pointer';
     finishButton.addEventListener('click', async () => {
-      state.questionStatus[questionId] = true;
-      await persistStudyState();
-      stopQuestionTimer('Finish button clicked');
-      closeQuestion();
-      await refreshQuestionStatus();
-      await completeTest();
+      await advanceQuestionSequence(questionId, 'Finish button clicked');
     });
     timerDisplay.appendChild(finishButton);
 
@@ -313,13 +444,7 @@
         return;
       }
 
-      stopQuestionTimer('Timer Ran out');
-      closeQuestion();
-      if (questionId in state.questionStatus) {
-        state.questionStatus[questionId] = true;
-        await persistStudyState();
-        await refreshQuestionStatus();
-      }
+      await advanceQuestionSequence(questionId, 'Timer Ran out');
     }, 1000);
   }
 
@@ -350,10 +475,34 @@
       return;
     }
 
-    alert('Test completed.\n\n Please proceed to the Qualtrics survey page!!');
+    if (state.activeAccordionObserver) {
+      state.activeAccordionObserver.disconnect();
+      state.activeAccordionObserver = null;
+    }
+
+    state.studyState = 'completed';
     await persistStudyState();
-    closeQuestion();
+    syncQuestionSequence();
+    alert('Test completed.\n\n Please proceed to the Qualtrics survey page!!');
     stopQuestionTimer('Test completed');
+  }
+
+  async function advanceQuestionSequence(questionId, log) {
+    if (questionId in state.questionStatus) {
+      state.questionStatus[questionId] = true;
+    }
+
+    await persistStudyState();
+    stopQuestionTimer(log);
+    syncQuestionSequence();
+    await refreshQuestionStatus();
+
+    if (getNextPendingQuestionId()) {
+      syncQuestionSequence();
+      return;
+    }
+
+    await completeTest();
   }
 
   function stopQuestionTimer(log) {
@@ -467,10 +616,6 @@
       }
 
       submission.correctAnswer = true;
-      stopQuestionTimer('Question correctly submitted');
-      if (submission.q_id in state.questionStatus) {
-        state.questionStatus[submission.q_id] = true;
-      }
       await saveToServer(
         submission.fullContent,
         submission.cmLineTexts,
@@ -483,7 +628,6 @@
         submission.correctAnswer,
         state.codeLengths,
       );
-      await startMainStudy();
       window.clearInterval(intervalId);
     });
   }
@@ -524,10 +668,6 @@
       }
 
       submission.correctAnswer = true;
-      stopQuestionTimer('Question correctly submitted');
-      if (submission.q_id in state.questionStatus) {
-        state.questionStatus[submission.q_id] = true;
-      }
       await saveToServer(
         submission.fullContent,
         submission.cmLineTexts,
@@ -540,10 +680,6 @@
         submission.correctAnswer,
         state.codeLengths,
       );
-      await storageSet({
-        currentState: state.studyState,
-        questionStatus: state.questionStatus,
-      });
       window.clearInterval(intervalId);
     });
   }

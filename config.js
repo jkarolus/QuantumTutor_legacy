@@ -17,8 +17,10 @@ const APP_CONFIG = {
   storageKeys: ['currentState', 'questionStatus', 'g_label', 'g_therory', 'questionTimings', 'u_id'],
   selectors: {
     accordion: '.CoderciseList .Accordion',
+    accordionButton: '[data-testid="accordion-button"]',
     accordionTitle: '.Accordion__title',
     accordionTitleHeading: '.Accordion__title h2',
+    accordionExpandedIcon: '[data-testid="accordion-button"] .ExpandedIcon',
     codeLine: '.cm-line',
     compareButton: '.CoderciseEditor__show-solutions-button',
     editorContainer: '.CoderciseEditor__container',
