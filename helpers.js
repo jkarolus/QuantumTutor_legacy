@@ -345,7 +345,7 @@ async function logQuestionStartedToServer(timestamp, questionId, userId, conditi
   }
 }
 
-async function logCopyPasteUsedToServer(timestamp, questionId, userId, condition, theoryState, pastedText) {
+async function logCopyPasteUsedToServer(timestamp, questionId, userId, condition, theoryState, pastedText, timeSpentSeconds) {
   try {
     await postJson(APP_CONFIG.endpoints.save, {
       timestamp,
@@ -355,13 +355,14 @@ async function logCopyPasteUsedToServer(timestamp, questionId, userId, condition
       q_id: questionId,
       event: "COPY_PASTE_USED",
       pasted_text: pastedText,
+      time_spent_in_sec: timeSpentSeconds,
     });
   } catch (error) {
     console.error('Error communicating with server:', error);
   }
 }
 
-function observePasteEvents(accordion, questionId, userId, condition, theoryState) {
+function observePasteEvents(accordion, questionId, userId, condition, theoryState, timerStartTime) {
   const handlePaste = (event) => {
     let pastedText = '';
     
@@ -380,7 +381,8 @@ function observePasteEvents(accordion, questionId, userId, condition, theoryStat
       }
     }
     
-    logCopyPasteUsedToServer(Date.now(), questionId, userId, condition, theoryState, pastedText);
+    const timeSpentSeconds = timerStartTime ? (Date.now() - timerStartTime) / 1000 : 0;
+    logCopyPasteUsedToServer(Date.now(), questionId, userId, condition, theoryState, pastedText, timeSpentSeconds);
   };
 
   const codeEditorElement = accordion.querySelector(APP_CONFIG.selectors.editorContainer);

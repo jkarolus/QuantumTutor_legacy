@@ -191,11 +191,11 @@
       }
     }, 500);
 
-    const stopObservingPaste = observePasteEvents(accordion, questionId, state.u_id, state.g_label, state.g_therory);
-
     if (state.timerStatus !== 'running') {
       startQuestionTimer(accordion, questionId);
     }
+
+    const stopObservingPaste = observePasteEvents(accordion, questionId, state.u_id, state.g_label, state.g_therory, state.timerStartTime);
   }
 
   function getNextPendingQuestionId() {
