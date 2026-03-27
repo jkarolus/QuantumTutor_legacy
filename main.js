@@ -630,11 +630,20 @@
   }
 
   function handleVanillaSubmission(submission) {
+    const calloutBlock = submission.accordion.querySelector(APP_CONFIG.selectors.calloutBlock);
+    if (calloutBlock) {
+      calloutBlock.style.display = 'none';
+    }
+
     const stopWaiting = waitForEvaluationComplete(submission.accordion, async (errorElement) => {
       const calloutText = errorElement.textContent.trim();
       
       if (!calloutText) {
         return;
+      }
+
+      if (calloutBlock) {
+        calloutBlock.style.display = '';
       }
 
       if (calloutText !== 'Correct!') {
@@ -674,6 +683,11 @@
       return;
     }
 
+    const calloutBlock = submission.accordion.querySelector(APP_CONFIG.selectors.calloutBlock);
+    if (calloutBlock) {
+      calloutBlock.style.display = 'none';
+    }
+
     let llmReply = null;
     const llmPromise = getLLMResponse(submission.fullContent, submission.cmLineTexts)
       .then(reply => {
@@ -689,10 +703,11 @@
 
       submission.correctAnswer = editorMessage === 'Correct!';
 
-      if (editorMessage !== 'Correct!') {
-        errorElement.textContent = '';
-        errorElement.style.display = 'none';
-
+      if (editorMessage === 'Correct!') {
+        if (calloutBlock) {
+          calloutBlock.style.display = '';
+        }
+      } else {
         try {
           const finalLlmReply = await Promise.race([
             llmPromise,
@@ -703,20 +718,27 @@
 
           if (finalLlmReply) {
             llmReply = finalLlmReply;
-            errorElement.style.display = '';
             errorElement.textContent = llmReply;
             errorElement.style.color = '#d00';
             errorElement.style.fontWeight = 'bold';
+            if (calloutBlock) {
+              calloutBlock.style.display = '';
+            }
           }
         } catch (error) {
           console.error('Error waiting for LLM response:', error);
-          errorElement.style.display = '';
-          if (!llmReply) {
-            errorElement.textContent = editorMessage;
-          } else {
+          if (llmReply) {
             errorElement.textContent = llmReply;
             errorElement.style.color = '#d00';
             errorElement.style.fontWeight = 'bold';
+            if (calloutBlock) {
+              calloutBlock.style.display = '';
+            }
+          } else {
+            errorElement.textContent = editorMessage;
+            if (calloutBlock) {
+              calloutBlock.style.display = '';
+            }
           }
         }
       }

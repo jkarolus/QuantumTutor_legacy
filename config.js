@@ -27,6 +27,7 @@ const APP_CONFIG = {
     editorContainer: '.CoderciseEditor__container',
     editorMessage: '.CoderciseEditor > div > div',
     overlay: '.CoderciseList .Accordion .CoderciseEditorOverlay',
+    calloutBlock: '.CalloutBlock',
     questionContainer: '.CoderciseDescription__container',
     summary: '#topic-codercise-container summary',
     startPanel: '.floating-panel',
