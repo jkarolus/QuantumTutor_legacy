@@ -683,10 +683,7 @@
       return;
     }
 
-    const calloutBlock = submission.accordion.querySelector(APP_CONFIG.selectors.calloutBlock);
-    if (calloutBlock) {
-      calloutBlock.style.display = 'none';
-    }
+    const stopHidingCallout = observeAndHideCalloutBlock(submission.accordion);
 
     let llmReply = null;
     const llmPromise = getLLMResponse(submission.fullContent, submission.cmLineTexts)
@@ -702,10 +699,12 @@
       }
 
       submission.correctAnswer = editorMessage === 'Correct!';
+      const calloutBlock = submission.accordion.querySelector(APP_CONFIG.selectors.calloutBlock);
 
       if (editorMessage === 'Correct!') {
+        stopHidingCallout();
         if (calloutBlock) {
-          calloutBlock.style.display = '';
+          calloutBlock.style.visibility = 'visible';
         }
       } else {
         try {
@@ -721,8 +720,9 @@
             errorElement.textContent = llmReply;
             errorElement.style.color = '#d00';
             errorElement.style.fontWeight = 'bold';
+            stopHidingCallout();
             if (calloutBlock) {
-              calloutBlock.style.display = '';
+              calloutBlock.style.visibility = 'visible';
             }
           }
         } catch (error) {
@@ -731,13 +731,15 @@
             errorElement.textContent = llmReply;
             errorElement.style.color = '#d00';
             errorElement.style.fontWeight = 'bold';
+            stopHidingCallout();
             if (calloutBlock) {
-              calloutBlock.style.display = '';
+              calloutBlock.style.visibility = 'visible';
             }
           } else {
             errorElement.textContent = editorMessage;
+            stopHidingCallout();
             if (calloutBlock) {
-              calloutBlock.style.display = '';
+              calloutBlock.style.visibility = 'visible';
             }
           }
         }

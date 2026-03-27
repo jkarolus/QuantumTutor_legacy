@@ -218,6 +218,29 @@ function observeEditorMessage(accordion, callback, intervalMs = 50) {
   };
 }
 
+function observeAndHideCalloutBlock(accordion) {
+  const calloutBlock = accordion.querySelector(APP_CONFIG.selectors.calloutBlock);
+  if (calloutBlock) {
+    calloutBlock.style.visibility = 'hidden';
+  }
+
+  const observer = new MutationObserver(() => {
+    const block = accordion.querySelector(APP_CONFIG.selectors.calloutBlock);
+    if (block && block.style.visibility !== 'hidden') {
+      block.style.visibility = 'hidden';
+    }
+  });
+
+  observer.observe(accordion, {
+    childList: true,
+    subtree: true,
+  });
+
+  return () => {
+    observer.disconnect();
+  };
+}
+
 function waitForEvaluationComplete(accordion, callback, pollIntervalMs = 100) {
   let overlayCheckId = null;
   let hasSeenOverlay = false;
