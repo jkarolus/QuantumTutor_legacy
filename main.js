@@ -679,38 +679,23 @@
       return;
     }
 
-    const stopObserving = observeEditorMessage(submission.accordion, async (errorElement) => {
+    const stopWaiting = waitForEvaluationComplete(submission.accordion, async (errorElement) => {
       const editorMessage = errorElement.textContent.trim();
       if (!editorMessage) {
         return;
       }
 
-      stopObserving();
-
       if (editorMessage !== 'Correct!') {
         errorElement.textContent = llmReply;
         errorElement.style.color = '#d00';
         errorElement.style.fontWeight = 'bold';
-        await saveToServer(
-          submission.fullContent,
-          submission.cmLineTexts,
-          llmReply,
-          state.u_id,
-          submission.q_id,
-          state.g_label,
-          state.g_therory,
-          submission.curTime,
-          submission.correctAnswer,
-          state.codeLengths,
-        );
-        return;
       }
 
-      submission.correctAnswer = true;
+      submission.correctAnswer = editorMessage === 'Correct!';
       await saveToServer(
         submission.fullContent,
         submission.cmLineTexts,
-        'Solution acceped!!',
+        llmReply,
         state.u_id,
         submission.q_id,
         state.g_label,
