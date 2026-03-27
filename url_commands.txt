@@ -7,3 +7,7 @@ https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits
 
 
 ?debug=true -> all Question timers to 10 seconds
+
+
+
+sudo systemctl restart quantumtutor
