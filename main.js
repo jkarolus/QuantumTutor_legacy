@@ -405,25 +405,30 @@
   function startQuestionTimer(accordion, questionId) {
     const timerDisplay = document.createElement('div');
     timerDisplay.style.marginTop = '10px';
-    timerDisplay.style.padding = '6px 12px';
-    timerDisplay.style.backgroundColor = '#f0f0f0';
-    timerDisplay.style.border = '1px solid #ccc';
-    timerDisplay.style.borderRadius = '5px';
-    timerDisplay.style.fontWeight = 'bold';
+    timerDisplay.style.padding = '12px 20px';
     timerDisplay.style.display = 'flex';
     timerDisplay.style.justifyContent = 'space-between';
     timerDisplay.style.alignItems = 'center';
-    timerDisplay.style.gap = '10px';
+    timerDisplay.style.gap = '15px';
 
     state.timeLeft = getInitialTimeLeft(questionId);
 
     const timeElement = document.createElement('span');
+    timeElement.style.padding = '12px 20px';
+    timeElement.style.backgroundColor = '#fff3cd';
+    timeElement.style.border = '2px solid #ff9800';
+    timeElement.style.borderRadius = '8px';
+    timeElement.style.fontWeight = 'bold';
+    timeElement.style.fontSize = '18px';
+    timeElement.style.color = '#333';
+    timeElement.style.boxShadow = '0 4px 8px rgba(255, 152, 0, 0.3)';
     updateTimerText(timeElement, state.timeLeft);
     timerDisplay.appendChild(timeElement);
 
     const finishButton = document.createElement('button');
     finishButton.textContent = questionId === 'I.1.4' ? 'Finish' : 'Next Question';
-    finishButton.style.padding = '4px 8px';
+    finishButton.style.padding = '8px 16px';
+    finishButton.style.fontSize = '14px';
     finishButton.style.backgroundColor = '#dc3545';
     finishButton.style.color = 'white';
     finishButton.style.border = 'none';
