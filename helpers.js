@@ -218,6 +218,44 @@ function observeEditorMessage(accordion, callback, intervalMs = 50) {
   };
 }
 
+function waitForEvaluationComplete(accordion, callback, pollIntervalMs = 100) {
+  let overlayCheckId = null;
+  let hasSeenOverlay = false;
+  let timeoutId = null;
+
+  const checkOverlay = () => {
+    const overlay = accordion.querySelector(APP_CONFIG.selectors.overlay);
+    
+    if (overlay) {
+      hasSeenOverlay = true;
+      return;
+    }
+
+    if (hasSeenOverlay) {
+      window.clearInterval(overlayCheckId);
+      overlayCheckId = null;
+      
+      timeoutId = window.setTimeout(() => {
+        const messageElement = accordion.querySelector(APP_CONFIG.selectors.editorMessage);
+        if (messageElement) {
+          callback(messageElement);
+        }
+      }, 100);
+    }
+  };
+
+  overlayCheckId = window.setInterval(checkOverlay, pollIntervalMs);
+
+  return () => {
+    if (overlayCheckId) {
+      window.clearInterval(overlayCheckId);
+    }
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+  };
+}
+
 async function postJson(url, body) {
   const response = await fetch(url, {
     method: 'POST',

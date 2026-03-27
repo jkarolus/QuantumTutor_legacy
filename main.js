@@ -630,12 +630,18 @@
   }
 
   function handleVanillaSubmission(submission) {
-    const intervalId = pollForEditorMessage(submission.accordion, async (errorElement) => {
-      if (errorElement.textContent !== 'Correct!') {
+    const stopWaiting = waitForEvaluationComplete(submission.accordion, async (errorElement) => {
+      const calloutText = errorElement.textContent.trim();
+      
+      if (!calloutText) {
+        return;
+      }
+
+      if (calloutText !== 'Correct!') {
         await saveToServer(
           submission.fullContent,
           submission.cmLineTexts,
-          errorElement.textContent,
+          calloutText,
           state.u_id,
           submission.q_id,
           state.g_label,
@@ -644,7 +650,6 @@
           submission.correctAnswer,
           state.codeLengths,
         );
-        window.clearInterval(intervalId);
         return;
       }
 
@@ -661,7 +666,6 @@
         submission.correctAnswer,
         state.codeLengths,
       );
-      window.clearInterval(intervalId);
     });
   }
 
