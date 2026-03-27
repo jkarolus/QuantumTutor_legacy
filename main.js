@@ -613,20 +613,18 @@
 
     console.log('Global label and user id:', state.g_label, state.u_id);
 
-    if (
-      submission.exerciseLabel.includes('PreTest') ||
-      submission.exerciseLabel.includes('PostTest') ||
-      state.g_label === APP_CONFIG.modes.vanilla
-    ) {
-      submission.q_id = 'I.1.5';
-      handleVanillaSubmission(submission);
-      return;
-    }
-
     if (state.g_label === APP_CONFIG.modes.llm) {
       await handleLlmSubmission(submission);
       return;
     }
+
+    else {
+      await handleVanillaSubmission(submission);
+      return;
+    }
+    
+
+
 
     console.log('Options not defined in condition');
   }
