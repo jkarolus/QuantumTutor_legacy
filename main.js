@@ -674,10 +674,12 @@
       return;
     }
 
-    const llmReply = await getLLMResponse(submission.fullContent, submission.cmLineTexts);
-    if (!llmReply) {
-      return;
-    }
+    let llmReply = null;
+    const llmPromise = getLLMResponse(submission.fullContent, submission.cmLineTexts)
+      .then(reply => {
+        llmReply = reply;
+        return reply;
+      });
 
     const stopWaiting = waitForEvaluationComplete(submission.accordion, async (errorElement) => {
       const editorMessage = errorElement.textContent.trim();
@@ -685,17 +687,44 @@
         return;
       }
 
+      submission.correctAnswer = editorMessage === 'Correct!';
+
       if (editorMessage !== 'Correct!') {
-        errorElement.textContent = llmReply;
-        errorElement.style.color = '#d00';
-        errorElement.style.fontWeight = 'bold';
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+
+        try {
+          const finalLlmReply = await Promise.race([
+            llmPromise,
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('LLM timeout')), 10000)
+            ),
+          ]);
+
+          if (finalLlmReply) {
+            llmReply = finalLlmReply;
+            errorElement.style.display = '';
+            errorElement.textContent = llmReply;
+            errorElement.style.color = '#d00';
+            errorElement.style.fontWeight = 'bold';
+          }
+        } catch (error) {
+          console.error('Error waiting for LLM response:', error);
+          errorElement.style.display = '';
+          if (!llmReply) {
+            errorElement.textContent = editorMessage;
+          } else {
+            errorElement.textContent = llmReply;
+            errorElement.style.color = '#d00';
+            errorElement.style.fontWeight = 'bold';
+          }
+        }
       }
 
-      submission.correctAnswer = editorMessage === 'Correct!';
       await saveToServer(
         submission.fullContent,
         submission.cmLineTexts,
-        llmReply,
+        llmReply || editorMessage,
         state.u_id,
         submission.q_id,
         state.g_label,
