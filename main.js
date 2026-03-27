@@ -196,6 +196,7 @@
     }
 
     const stopObservingPaste = observePasteEvents(accordion, questionId, state.u_id, state.g_label, state.g_therory, state.timerStartTime);
+    const stopObservingWindowFocus = observeWindowFocusEvents(questionId, state.u_id, state.g_label, state.g_therory, state.timerStartTime);
   }
 
   function getNextPendingQuestionId() {

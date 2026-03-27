@@ -345,6 +345,42 @@ async function logQuestionStartedToServer(timestamp, questionId, userId, conditi
   }
 }
 
+async function logWindowFocusChangeToServer(timestamp, questionId, userId, condition, theoryState, eventType, timeSpentSeconds) {
+  try {
+    await postJson(APP_CONFIG.endpoints.save, {
+      timestamp,
+      u_id: userId,
+      condition: condition,
+      theory_condition: theoryState,
+      q_id: questionId,
+      event: eventType,
+      time_spent_in_sec: timeSpentSeconds,
+    });
+  } catch (error) {
+    console.error('Error communicating with server:', error);
+  }
+}
+
+function observeWindowFocusEvents(questionId, userId, condition, theoryState, timerStartTime) {
+  const handleFocus = () => {
+    const timeSpentSeconds = timerStartTime ? (Date.now() - timerStartTime) / 1000 : 0;
+    logWindowFocusChangeToServer(Date.now(), questionId, userId, condition, theoryState, 'WINDOW_FOCUS', timeSpentSeconds);
+  };
+
+  const handleBlur = () => {
+    const timeSpentSeconds = timerStartTime ? (Date.now() - timerStartTime) / 1000 : 0;
+    logWindowFocusChangeToServer(Date.now(), questionId, userId, condition, theoryState, 'WINDOW_BLUR', timeSpentSeconds);
+  };
+
+  window.addEventListener('focus', handleFocus);
+  window.addEventListener('blur', handleBlur);
+
+  return () => {
+    window.removeEventListener('focus', handleFocus);
+    window.removeEventListener('blur', handleBlur);
+  };
+}
+
 async function logCopyPasteUsedToServer(timestamp, questionId, userId, condition, theoryState, pastedText, timeSpentSeconds) {
   try {
     await postJson(APP_CONFIG.endpoints.save, {
