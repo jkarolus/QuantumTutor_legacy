@@ -1,0 +1,9 @@
+https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=bhgv&theory=eism
+https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=bhgv&theory=jrkl
+
+https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=mkjn&theory=eism
+https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=mkjn&theory=jrkl
+
+
+
+?debug=true -> all Question timers to 10 seconds
