@@ -422,7 +422,7 @@
     timerDisplay.appendChild(timeElement);
 
     const finishButton = document.createElement('button');
-    finishButton.textContent = 'Finish';
+    finishButton.textContent = questionId === 'I.1.4' ? 'Finish' : 'Next Question';
     finishButton.style.padding = '4px 8px';
     finishButton.style.backgroundColor = '#dc3545';
     finishButton.style.color = 'white';
