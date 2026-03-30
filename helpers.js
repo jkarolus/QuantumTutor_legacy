@@ -223,11 +223,21 @@ function observeAndHideCalloutBlock(accordion) {
   if (calloutBlock) {
     calloutBlock.style.visibility = 'hidden';
   }
+  
+  const llmReplyElement = accordion.querySelector('.llm-reply-element');
+  if (llmReplyElement) {
+    llmReplyElement.style.display = 'none';
+  }
 
   const observer = new MutationObserver(() => {
     const block = accordion.querySelector(APP_CONFIG.selectors.calloutBlock);
     if (block && block.style.visibility !== 'hidden') {
       block.style.visibility = 'hidden';
+    }
+    
+    const llmReply = accordion.querySelector('.llm-reply-element');
+    if (llmReply && llmReply.style.display !== 'none') {
+      llmReply.style.display = 'none';
     }
   });
 
@@ -293,7 +303,7 @@ async function postJson(url, body) {
   return response;
 }
 
-async function saveToServer(question, solution, hintResponse, uid, questionId, condition, theoryState, timestamp, correctAnswer, codeLength) {
+async function saveToServer(question, solution, hintResponse, uid, questionId, condition, theoryState, timestamp, correctAnswer, codeLength, editorMessage = null, llmReply = null) {
   const cleanCode = solution.map((line) => line.trim()).filter((line) => line !== '');
   const fullCode = cleanCode.join('\n');
 
@@ -308,6 +318,8 @@ async function saveToServer(question, solution, hintResponse, uid, questionId, c
       question,
       fullCode,
       hintResponse,
+      editorMessage,
+      llmReply,
       correctAnswer,
       'Code length': codeLength,
     });

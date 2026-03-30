@@ -725,9 +725,28 @@
 
           if (finalLlmReply) {
             llmReply = finalLlmReply;
-            errorElement.textContent = llmReply;
+            errorElement.textContent = editorMessage;
             errorElement.style.color = '#d00';
             errorElement.style.fontWeight = 'bold';
+            
+            // Create or update LLM reply element
+            let llmReplyElement = errorElement.nextElementSibling;
+            if (!llmReplyElement || !llmReplyElement.classList.contains('llm-reply-element')) {
+              llmReplyElement = document.createElement('div');
+              llmReplyElement.classList.add('llm-reply-element');
+              llmReplyElement.style.display = 'none';
+              errorElement.parentNode.insertBefore(llmReplyElement, errorElement.nextSibling);
+            }
+            llmReplyElement.textContent = 'LLM: ' + llmReply;
+            llmReplyElement.style.color = '#0066cc';
+            llmReplyElement.style.fontWeight = 'normal';
+            llmReplyElement.style.marginTop = '8px';
+            llmReplyElement.style.display = 'block';
+            llmReplyElement.style.padding = '12px';
+            llmReplyElement.style.border = '1px solid #e0e0e0';
+            llmReplyElement.style.borderRadius = '4px';
+            llmReplyElement.style.backgroundColor = '#f5f5f5';
+            
             stopHidingCallout();
             if (calloutBlock) {
               calloutBlock.style.visibility = 'visible';
@@ -736,15 +755,43 @@
         } catch (error) {
           console.error('Error waiting for LLM response:', error);
           if (llmReply) {
-            errorElement.textContent = llmReply;
+            errorElement.textContent = editorMessage;
             errorElement.style.color = '#d00';
             errorElement.style.fontWeight = 'bold';
+            
+            // Create or update LLM reply element
+            let llmReplyElement = errorElement.nextElementSibling;
+            if (!llmReplyElement || !llmReplyElement.classList.contains('llm-reply-element')) {
+              llmReplyElement = document.createElement('div');
+              llmReplyElement.classList.add('llm-reply-element');
+              llmReplyElement.style.display = 'none';
+              errorElement.parentNode.insertBefore(llmReplyElement, errorElement.nextSibling);
+            }
+            llmReplyElement.textContent = 'LLM: ' + llmReply;
+            llmReplyElement.style.color = '#0066cc';
+            llmReplyElement.style.fontWeight = 'normal';
+            llmReplyElement.style.marginTop = '8px';
+            llmReplyElement.style.display = 'block';
+            llmReplyElement.style.padding = '12px';
+            llmReplyElement.style.border = '1px solid #e0e0e0';
+            llmReplyElement.style.borderRadius = '4px';
+            llmReplyElement.style.backgroundColor = '#f5f5f5';
+            
             stopHidingCallout();
             if (calloutBlock) {
               calloutBlock.style.visibility = 'visible';
             }
           } else {
-            errorElement.textContent = editorMessage;
+            errorElement.textContent = 'QuantumTutor reply unvailable.';
+            errorElement.style.color = '#d00';
+            errorElement.style.fontWeight = 'bold';
+            
+            // Hide LLM reply element if it exists
+            let llmReplyElement = errorElement.nextElementSibling;
+            if (llmReplyElement && llmReplyElement.classList.contains('llm-reply-element')) {
+              llmReplyElement.style.display = 'none';
+            }
+            
             stopHidingCallout();
             if (calloutBlock) {
               calloutBlock.style.visibility = 'visible';
@@ -764,6 +811,8 @@
         submission.curTime,
         submission.correctAnswer,
         state.codeLengths,
+        editorMessage,
+        llmReply,
       );
     });
   }
