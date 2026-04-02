@@ -737,7 +737,39 @@
               llmReplyElement.style.display = 'none';
               errorElement.parentNode.insertBefore(llmReplyElement, errorElement.nextSibling);
             }
-            llmReplyElement.textContent = 'LLM: ' + llmReply;
+            
+            //console.log('LLM reply:', llmReply);
+            // Handle JSON replies with CONCEPT and HINT keys
+            let htmlContent = '';
+            try {
+              const jsonReply = typeof llmReply === 'string' ? JSON.parse(llmReply) : llmReply;
+              if (jsonReply && typeof jsonReply === 'object') {
+                htmlContent += `
+                  <div class="llm-container" style="display: flex; gap: 16px; align-items: flex-start;">
+                    <div class="llm-avatar" style="flex-shrink: 0; font-size: 48px; line-height: 1;">🤖</div>
+                    <div class="llm-content" style="flex: 1;">
+                `;
+                if (jsonReply.CONCEPT) {
+                  htmlContent += `<div class="llm-concept" style="margin-bottom: 12px;">${jsonReply.CONCEPT}</div>`;
+                }
+                if (jsonReply.HINT) {
+                  htmlContent += `<div class="llm-hint"><strong>Hint:</strong><br>${jsonReply.HINT}</div>`;
+                }
+                htmlContent += `
+                    </div>
+                  </div>
+                `;
+              }
+            } catch (e) {
+              // If not JSON, treat as plain text
+              htmlContent = `<div>${llmReply}</div>`;
+            }
+            
+            if (!htmlContent) {
+              htmlContent = `<div>${llmReply}</div>`;
+            }
+            
+            llmReplyElement.innerHTML = htmlContent;
             llmReplyElement.style.color = '#0066cc';
             llmReplyElement.style.fontWeight = 'normal';
             llmReplyElement.style.marginTop = '8px';
