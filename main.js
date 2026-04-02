@@ -742,7 +742,19 @@
             // Handle JSON replies with CONCEPT and HINT keys
             let htmlContent = '';
             try {
-              const jsonReply = typeof llmReply === 'string' ? JSON.parse(llmReply) : llmReply;
+              let jsonReply;
+              if (typeof llmReply === 'string') {
+                // Fix invalid JSON with unescaped newlines in string values
+                // First, escape unescaped newlines within quoted strings
+                const fixedReply = llmReply.replace(/:\s*"([^"]*)"/g, (match) => {
+                  const cleaned = match.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                  return cleaned;
+                });
+                jsonReply = JSON.parse(fixedReply);
+              } else {
+                jsonReply = llmReply;
+              }
+              
               if (jsonReply && typeof jsonReply === 'object') {
                 htmlContent += `
                   <div class="llm-container" style="display: flex; gap: 16px; align-items: flex-start;">
