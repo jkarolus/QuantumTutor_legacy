@@ -737,6 +737,7 @@
             }
             
             //console.log('LLM reply:', llmReply);
+            
             // Handle JSON replies with CONCEPT and HINT keys
             let htmlContent = '';
             try {
@@ -754,6 +755,14 @@
               }
               
               if (jsonReply && typeof jsonReply === 'object') {
+                // Convert LaTeX in CONCEPT and HINT to HTML
+                if (jsonReply.CONCEPT) {
+                  jsonReply.CONCEPT = jsonReply.CONCEPT;
+                }
+                if (jsonReply.HINT) {
+                  jsonReply.HINT = jsonReply.HINT;
+                }
+                
                 htmlContent += `
                   <div class="llm-container" style="display: flex; gap: 16px; align-items: flex-start;">
                     <div class="llm-avatar" style="flex-shrink: 0; font-size: 48px; line-height: 1;">🤖</div>
@@ -823,6 +832,7 @@
               calloutBlock.style.visibility = 'visible';
         }
       }
+    }
 
       await saveToServer(
         submission.fullContent,
