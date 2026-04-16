@@ -834,10 +834,13 @@
       }
     }
 
+      // Clean up hintResponse by removing markdown code block wrapper if present
+      const hintResponse = removeMarkdownCodeBlockWrapper(llmReply || editorMessage);
+
       await saveToServer(
         submission.fullContent,
         submission.cmLineTexts,
-        llmReply || editorMessage,
+        hintResponse,
         state.u_id,
         submission.q_id,
         state.g_label,

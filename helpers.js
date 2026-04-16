@@ -16,6 +16,25 @@ function storageClear() {
   });
 }
 
+function removeMarkdownCodeBlockWrapper(text) {
+  if (!text || typeof text !== 'string') {
+    return text;
+  }
+  
+  // Remove markdown code block wrapper: ```json ... ``` or just ``` ... ```
+  let cleaned = text.trim();
+  
+  // Match ``` with optional json language specifier
+  const codeBlockPattern = /^```(?:json)?\s*[\n\r]+([\s\S]*?)[\n\r]*```\s*$/;
+  const match = cleaned.match(codeBlockPattern);
+  
+  if (match && match[1]) {
+    cleaned = match[1].trim();
+  }
+  
+  return cleaned;
+}
+
 function getAccordions() {
   return Array.from(document.querySelectorAll(APP_CONFIG.selectors.accordion));
 }
