@@ -477,13 +477,14 @@ async function logStudyCompletedToServer(timestamp, userId, condition, theorySta
   }
 }
 
-async function getLLMResponse(question, solution) {
+async function getLLMResponse(question_id, question, solution) {
   const cleanCode = solution.map((line) => line.trim()).filter((line) => line !== '');
   const fullCode = cleanCode.join('\n');
 
   try {
     const response = await postJson(APP_CONFIG.endpoints.llm, {
       body: {
+        question_id,
         question,
         fullCode,
       },

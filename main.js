@@ -694,7 +694,7 @@
     const stopHidingCallout = observeAndHideCalloutBlock(submission.accordion);
 
     let llmReply = null;
-    const llmPromise = getLLMResponse(submission.fullContent, submission.cmLineTexts)
+    const llmPromise = getLLMResponse(submission.q_id, submission.fullContent, submission.cmLineTexts)
       .then(reply => {
         llmReply = reply;
         return reply;
