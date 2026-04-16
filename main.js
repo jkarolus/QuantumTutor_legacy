@@ -621,8 +621,8 @@
 
     console.log('Global label and user id:', state.g_label, state.u_id);
 
-    if (state.g_label === APP_CONFIG.modes.llm) {
-      await handleLlmSubmission(submission);
+    if (state.g_label === APP_CONFIG.modes.llm || state.g_label === APP_CONFIG.modes.llm_include_theory) {
+      await handleLlmSubmission(submission, state.g_label);
       return;
     }
 
@@ -686,7 +686,7 @@
     });
   }
 
-  async function handleLlmSubmission(submission) {
+  async function handleLlmSubmission(submission, g_label) {
     if (!submission.form.querySelector(APP_CONFIG.selectors.editorContainer)) {
       return;
     }
@@ -694,7 +694,7 @@
     const stopHidingCallout = observeAndHideCalloutBlock(submission.accordion);
 
     let llmReply = null;
-    const llmPromise = getLLMResponse(submission.q_id, submission.fullContent, submission.cmLineTexts)
+    const llmPromise = getLLMResponse(submission.q_id, submission.fullContent, submission.cmLineTexts, g_label === APP_CONFIG.modes.llm_include_theory)
       .then(reply => {
         llmReply = reply;
         return reply;

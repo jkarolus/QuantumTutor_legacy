@@ -2,6 +2,7 @@ const APP_CONFIG = {
   modes: {
     vanilla: 'mkjn',
     llm: 'bhgv',
+    llm_include_theory: 'dkue',
   },
   theoryModes: {
     legacy: 'jrkl',

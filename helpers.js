@@ -496,7 +496,7 @@ async function logStudyCompletedToServer(timestamp, userId, condition, theorySta
   }
 }
 
-async function getLLMResponse(question_id, question, solution) {
+async function getLLMResponse(question_id, question, solution, include_theory) {
   const cleanCode = solution.map((line) => line.trim()).filter((line) => line !== '');
   const fullCode = cleanCode.join('\n');
 
@@ -506,6 +506,7 @@ async function getLLMResponse(question_id, question, solution) {
         question_id,
         question,
         fullCode,
+        include_theory
       },
     });
 
