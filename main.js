@@ -738,57 +738,170 @@
             
             //console.log('LLM reply:', llmReply);
             
-            // Handle JSON replies with CONCEPT and HINT keys
+            // Safety layer: Handle JSON replies with CONCEPT and HINT keys
             let htmlContent = '';
-            try {
-              let jsonReply;
-              if (typeof llmReply === 'string') {
-                // Fix invalid JSON with unescaped newlines in string values
-                // First, escape unescaped newlines within quoted strings
-                const fixedReply = llmReply.replace(/:\s*"([^"]*)"/g, (match) => {
-                  const cleaned = match.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-                  return cleaned;
-                });
-                jsonReply = JSON.parse(fixedReply);
-              } else {
-                jsonReply = llmReply;
-              }
-              
-              if (jsonReply && typeof jsonReply === 'object') {
-                // Convert LaTeX in CONCEPT and HINT to HTML
-                if (jsonReply.CONCEPT) {
-                  jsonReply.CONCEPT = jsonReply.CONCEPT;
-                }
-                if (jsonReply.HINT) {
-                  jsonReply.HINT = jsonReply.HINT;
+            
+            // Safety check 1: Validate llmReply exists
+            if (!llmReply) {
+              htmlContent = `<div>No response available</div>`;
+            } else {
+              try {
+                let jsonReply;
+                let isValidJSON = false;
+                let processedReply = llmReply;
+                let wasCodeBlock = false;
+                
+                if (typeof llmReply === 'string') {
+                  // Safety check 1.5: Extract JSON from markdown code blocks if present
+                  // Try multiple patterns for code blocks
+                  let codeBlockMatch = processedReply.match(/```(?:json)?\s*[\n\r]?([\s\S]*?)```/);
+                  if (!codeBlockMatch) {
+                    // Try inline triple backticks
+                    codeBlockMatch = processedReply.match(/```\s*({[\s\S]*?})\s*```/);
+                  }
+                  if (!codeBlockMatch && processedReply.includes('```')) {
+                    // Fallback: just grab content between backticks
+                    codeBlockMatch = processedReply.match(/```[\s\S]*?\n?([\s\S]*?)\n?```/);
+                  }
+                  
+                  if (codeBlockMatch && codeBlockMatch[1]) {
+                    processedReply = codeBlockMatch[1].trim();
+                    wasCodeBlock = true;
+                    console.log('Extracted JSON from code block');
+                  }
+                  
+                  try {
+                    // Fix invalid JSON with unescaped newlines in string values
+                    // First, escape unescaped newlines within quoted strings
+                    const fixedReply = processedReply.replace(/:\s*"([^"]*)"/g, (match) => {
+                      const cleaned = match.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                      return cleaned;
+                    });
+                    jsonReply = JSON.parse(fixedReply);
+                    isValidJSON = true;
+                  } catch (parseError) {
+                    // If JSON parsing fails, treat as plain text
+                    jsonReply = null;
+                    isValidJSON = false;
+                    if (wasCodeBlock) {
+                      console.warn('Failed to parse extracted code block:', parseError);
+                    }
+                  }
+                } else if (typeof llmReply === 'object' && llmReply !== null) {
+                  jsonReply = llmReply;
+                  isValidJSON = true;
                 }
                 
-                htmlContent += `
-                  <div class="llm-container" style="display: flex; gap: 16px; align-items: flex-start;">
-                    <div class="llm-avatar" style="flex-shrink: 0; font-size: 48px; line-height: 1;">🤖</div>
-                    <div class="llm-content" style="flex: 1;">
-                `;
-                if (jsonReply.CONCEPT) {
-                  htmlContent += `<div class="llm-concept" style="margin-bottom: 12px;">${jsonReply.CONCEPT}</div>`;
+                // Safety check 2: Validate JSON structure has expected fields
+                if (isValidJSON && jsonReply && typeof jsonReply === 'object') {
+                  const hasConcept = jsonReply.CONCEPT && String(jsonReply.CONCEPT).trim();
+                  const hasHint = jsonReply.HINT && String(jsonReply.HINT).trim();
+                  
+                  // Safety check 3: Only use HTML structure if at least one field exists
+                  if (hasConcept || hasHint) {
+                    htmlContent += `
+                      <div class="llm-container" style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div class="llm-avatar" style="flex-shrink: 0; font-size: 48px; line-height: 1;">🤖</div>
+                        <div class="llm-content" style="flex: 1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5;">
+                    `;
+                    
+                    if (hasConcept) {
+                      // Safety check 4: Use textContent to safely display content without HTML injection
+                      const conceptDiv = document.createElement('div');
+                      conceptDiv.textContent = String(jsonReply.CONCEPT);
+                      conceptDiv.style.marginBottom = '12px';
+                      htmlContent += `<div class="llm-concept" style="margin-bottom: 12px;"></div>`;
+                    }
+                    
+                    if (hasHint) {
+                      htmlContent += `<div class="llm-hint"><strong>Hint:</strong><br></div>`;
+                    }
+                    
+                    htmlContent += `
+                        </div>
+                      </div>
+                    `;
+                  } else {
+                    // Safety check 5: If JSON is valid but empty, show it as is
+                    htmlContent = `<div style="color: #666;">Empty response from assistant</div>`;
+                  }
+                } else {
+                  // Safety check 6: Fallback for non-JSON responses - display as text
+                  htmlContent = `<div></div>`;
                 }
-                if (jsonReply.HINT) {
-                  htmlContent += `<div class="llm-hint"><strong>Hint:</strong><br>${jsonReply.HINT}</div>`;
-                }
-                htmlContent += `
-                    </div>
-                  </div>
-                `;
+              } catch (e) {
+                // Safety check 7: Final fallback for any unexpected errors
+                console.error('Error processing LLM reply:', e);
+                htmlContent = `<div style="color: #999;">Unable to process response</div>`;
               }
-            } catch (e) {
-              // If not JSON, treat as plain text
-              htmlContent = `<div>${llmReply}</div>`;
             }
             
-            if (!htmlContent) {
-              htmlContent = `<div>${llmReply}</div>`;
+            // Safety check 8: Final validation before rendering
+            if (!htmlContent || htmlContent.trim() === '') {
+              htmlContent = `<div style="color: #999;">No valid response</div>`;
             }
             
+            // Render the container structure first
             llmReplyElement.innerHTML = htmlContent;
+            
+            // Then safely populate the content using textContent to preserve unicode and special chars
+            if (llmReply && (typeof llmReply === 'string' || typeof llmReply === 'object')) {
+              try {
+                let dataToDisplay;
+                if (typeof llmReply === 'string') {
+                  // Extract from code block if present (same logic as above)
+                  let toProcess = llmReply;
+                  let codeBlockMatch = toProcess.match(/```(?:json)?\s*[\n\r]?([\s\S]*?)```/);
+                  if (!codeBlockMatch) {
+                    codeBlockMatch = toProcess.match(/```\s*({[\s\S]*?})\s*```/);
+                  }
+                  if (!codeBlockMatch && toProcess.includes('```')) {
+                    codeBlockMatch = toProcess.match(/```[\s\S]*?\n?([\s\S]*?)\n?```/);
+                  }
+                  
+                  if (codeBlockMatch && codeBlockMatch[1]) {
+                    toProcess = codeBlockMatch[1].trim();
+                  }
+                  
+                  const fixedReply = toProcess.replace(/:\s*"([^"]*)"/g, (match) => {
+                    const cleaned = match.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                    return cleaned;
+                  });
+                  dataToDisplay = JSON.parse(fixedReply);
+                } else {
+                  dataToDisplay = llmReply;
+                }
+                
+                if (dataToDisplay && typeof dataToDisplay === 'object') {
+                  const conceptEl = llmReplyElement.querySelector('.llm-concept');
+                  const hintEl = llmReplyElement.querySelector('.llm-hint');
+                  
+                  if (conceptEl && dataToDisplay.CONCEPT) {
+                    conceptEl.textContent = String(dataToDisplay.CONCEPT);
+                  }
+                  
+                  if (hintEl && dataToDisplay.HINT) {
+                    // Create a text node for the hint content (preserves unicode chars)
+                    const hintTextSpan = document.createElement('span');
+                    hintTextSpan.textContent = String(dataToDisplay.HINT);
+                    // Clear any existing content after <br>
+                    const br = hintEl.querySelector('br');
+                    while (br && br.nextSibling) {
+                      br.nextSibling.remove();
+                    }
+                    // Append the hint text after the <br>
+                    if (br) {
+                      br.parentNode.insertBefore(hintTextSpan, br.nextSibling);
+                    } else {
+                      hintEl.appendChild(hintTextSpan);
+                    }
+                  }
+                }
+              } catch (e) {
+                console.error('Error setting text content:', e);
+              }
+            }
+            
             llmReplyElement.style.color = '#0066cc';
             llmReplyElement.style.fontWeight = 'normal';
             llmReplyElement.style.marginTop = '8px';
