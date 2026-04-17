@@ -1,8 +1,15 @@
+# llm
 https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=bhgv&theory=eism
 https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=bhgv&theory=jrkl
 
+#vanilla
 https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=mkjn&theory=eism
 https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=mkjn&theory=jrkl
+
+#llm (but only Access to theory_text and examples)
+https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=dkue&theory=eism
+https://pennylane.ai/codebook/introduction-to-quantum-computing/all-about-qubits?user=jakob_test&type=dkue&theory=jrkl
+
 
 
 
