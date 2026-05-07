@@ -41,12 +41,38 @@ function getAccordions() {
 
 function parseQueryParams(search = window.location.search) {
   const params = new URLSearchParams(search);
-  const theoryMode = params.get('theory') || params.get('therory') || APP_CONFIG.theoryModes.legacy;
+  const theoryMode = params.get('theory') || params.get('therory') || APP_CONFIG.theoryModes.hideTheory;
+
+  // Get u_id with fallback: "not_provided" + current date and time
+  const u_id = params.get('user') || (() => {
+    const now = new Date();
+    const timestamp = now.toISOString(); // Format: 2026-05-07T14:30:45.123Z
+    return `not_provided_${timestamp}`;
+  })();
+
+  // Get g_label with random fallback selection
+  let g_label = params.get('type');
+  let g_therory = theoryMode;
+
+  if (!g_label) {
+    // Randomly select between 3 combinations
+    const combinations = [
+      { g_label: APP_CONFIG.modes.vanilla, g_therory: APP_CONFIG.theoryModes.legacy },
+      { g_label: APP_CONFIG.modes.llm, g_therory: APP_CONFIG.theoryModes.legacy },
+      { g_label: APP_CONFIG.modes.llm, g_therory: APP_CONFIG.theoryModes.hideTheory },
+    ];
+    
+    const randomIndex = Math.floor(Math.random() * combinations.length);
+    const selectedCombination = combinations[randomIndex];
+    
+    g_label = selectedCombination.g_label;
+    g_therory = selectedCombination.g_therory;
+  }
 
   return {
-    u_id: params.get('user') || '',
-    g_label: params.get('type') || '',
-    g_therory: theoryMode,
+    u_id,
+    g_label,
+    g_therory,
     debug: params.get('debug') === 'true',
   };
 }
