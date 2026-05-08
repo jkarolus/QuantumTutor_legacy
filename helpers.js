@@ -522,6 +522,22 @@ async function logStudyCompletedToServer(timestamp, userId, condition, theorySta
   }
 }
 
+async function logOpenRelatedTheoryToServer(timestamp, questionId, userId, condition, theoryState, timeSpentSeconds) {
+  try {
+    await postJson(APP_CONFIG.endpoints.save, {
+      timestamp,
+      u_id: userId,
+      condition: condition,
+      theory_condition: theoryState,
+      q_id: questionId,
+      event: "OPEN_RELATED_THEORY",
+      time_spent_in_sec: timeSpentSeconds
+    });
+  } catch (error) {
+    console.error('Error communicating with server:', error);
+  }
+}
+
 async function getLLMResponse(question_id, question, solution, include_theory) {
   const cleanCode = solution.map((line) => line.trim()).filter((line) => line !== '');
   const fullCode = cleanCode.join('\n');

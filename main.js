@@ -195,8 +195,52 @@
       startQuestionTimer(accordion, questionId);
     }
 
+    observeOpenRelatedTheoryButton(accordion, questionId);
+
     const stopObservingPaste = observePasteEvents(accordion, questionId, state.u_id, state.g_label, state.g_therory, state.timerStartTime);
-    const stopObservingWindowFocus = observeWindowFocusEvents(questionId, state.u_id, state.g_label, state.g_therory, state.timerStartTime);
+    // const stopObservingWindowFocus = observeWindowFocusEvents(questionId, state.u_id, state.g_label, state.g_therory, state.timerStartTime);
+  }
+
+  function observeOpenRelatedTheoryButton(accordion, questionId) {
+    const attachListenerToButton = (button) => {
+      const buttonText = button.textContent?.trim().toLowerCase();
+      if (!buttonText || !buttonText.includes('open related theory')) {
+        return;
+      }
+
+      if (button.dataset.quantumTutorObserved === 'true') {
+        return;
+      }
+
+      button.dataset.quantumTutorObserved = 'true';
+      button.addEventListener('click', () => {
+        const timeSpent = (Date.now() - state.timerStartTime) / 1000;
+        const timestamp = Date.now();
+        logOpenRelatedTheoryToServer(
+          timestamp,
+          questionId,
+          state.u_id,
+          state.g_label,
+          state.g_therory,
+          timeSpent
+        );
+      });
+    };
+
+    // First, check for any existing buttons that are already in the DOM
+    const existingButtons = accordion.querySelectorAll('button');
+    existingButtons.forEach(attachListenerToButton);
+
+    // Then set up observer to catch any future buttons
+    const observer = new MutationObserver(() => {
+      const buttons = accordion.querySelectorAll('button');
+      buttons.forEach(attachListenerToButton);
+    });
+
+    observer.observe(accordion, {
+      childList: true,
+      subtree: true,
+    });
   }
 
   function getNextPendingQuestionId() {
@@ -629,7 +673,6 @@
       cmLineTexts: collectCodeLines(form),
     };
 
-    console.log('Global label and user id:', state.g_label, state.u_id);
 
     if (state.g_label === APP_CONFIG.modes.llm || state.g_label === APP_CONFIG.modes.llm_include_theory) {
       await handleLlmSubmission(submission, state.g_label);
@@ -640,11 +683,8 @@
       await handleVanillaSubmission(submission);
       return;
     }
-    
+  
 
-
-
-    console.log('Options not defined in condition');
   }
 
   function handleVanillaSubmission(submission) {
