@@ -361,12 +361,22 @@
     });
 
     panel.appendChild(button);
-    document.body.appendChild(panel);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'start-overlay';
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+    document.body.classList.add('study-not-started');
     state.startButtonRendered = true;
   }
 
   async function startMainStudy() {
     state.studyState = 'main';
+    const overlay = document.querySelector('.start-overlay');
+    if (overlay) {
+      overlay.remove();
+    }
+    document.body.classList.remove('study-not-started');
     await persistStudyState();
     syncQuestionSequence();
   }
