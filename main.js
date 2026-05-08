@@ -775,7 +775,6 @@
                 
                 htmlContent += `
                   <div class="llm-container" style="display: flex; gap: 16px; align-items: flex-start;">
-                    <div class="llm-avatar" style="flex-shrink: 0; font-size: 48px; line-height: 1;">🤖</div>
                     <div class="llm-content" style="flex: 1;">
                 `;
                 if (jsonReply.CONCEPT) {
