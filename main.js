@@ -9,6 +9,8 @@
     debug: false,
     u_id: '',
     codeLengths: [],
+    codeCollectionInterval: null,
+    currentCodeCollectionAccordion: null,
     timerStatus: 'not_started',
     currentTimer: null,
     currentTimerElement: null,
@@ -176,6 +178,8 @@
       return;
     }
 
+    state.codeLengths = [];
+
     const codeLength = collectCodeLines(accordion).join(' ').length;
     state.codeLengths.push(codeLength);
 
@@ -194,6 +198,8 @@
     if (state.timerStatus !== 'running') {
       startQuestionTimer(accordion, questionId);
     }
+
+    startCodeLengthCollection(accordion);
 
     observeOpenRelatedTheoryButton(accordion, questionId);
 
@@ -241,6 +247,24 @@
       childList: true,
       subtree: true,
     });
+  }
+
+  function startCodeLengthCollection(accordion) {
+    stopCodeLengthCollection();
+
+    state.currentCodeCollectionAccordion = accordion;
+    state.codeCollectionInterval = window.setInterval(() => {
+      const codeLength = collectCodeLines(accordion).join(' ').length;
+      state.codeLengths.push(codeLength);
+    }, 1000);
+  }
+
+  function stopCodeLengthCollection() {
+    if (state.codeCollectionInterval) {
+      window.clearInterval(state.codeCollectionInterval);
+      state.codeCollectionInterval = null;
+      state.currentCodeCollectionAccordion = null;
+    }
   }
 
   function getNextPendingQuestionId() {
@@ -599,6 +623,7 @@
 
     state.timerStatus = 'stopped';
     window.clearInterval(state.currentTimer);
+    stopCodeLengthCollection();
 
     if (state.currentQuestionId) {
       state.questionTimings[state.currentQuestionId] = {
