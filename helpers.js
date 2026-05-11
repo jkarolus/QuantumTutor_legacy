@@ -490,7 +490,7 @@ function observePasteEvents(accordion, questionId, userId, condition, theoryStat
   };
 }
 
-async function logQuestionFinishedToServer(timestamp, questionId, userId, condition, theoryState, timeSpentSeconds, finishReason) {
+async function logQuestionFinishedToServer(timestamp, questionId, userId, condition, theoryState, timeSpentSeconds, finishReason, codeLength) {
   try {
     await postJson(APP_CONFIG.endpoints.save, {
       timestamp,
@@ -501,6 +501,7 @@ async function logQuestionFinishedToServer(timestamp, questionId, userId, condit
       time_spent_in_sec: timeSpentSeconds,
       finish_reason: finishReason,
       event: "QUESTION_FINISHED",
+      'Code length': codeLength,
     });
   } catch (error) {
     console.error('Error communicating with server:', error);

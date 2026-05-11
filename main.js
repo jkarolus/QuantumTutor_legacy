@@ -649,6 +649,7 @@
             state.g_therory,
             timeSpent,
             log,
+            state.codeLengths
           );
         }
       }
